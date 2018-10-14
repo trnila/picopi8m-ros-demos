@@ -48,13 +48,14 @@ M4Core::~M4Core() {
 }
 
 void M4Core::start() {
-  system("insmod /lib/modules/4.9.88-trn_loadable_imx_rpmsg+gc511f89/drivers/rpmsg/imx_rpmsg.ko");
+  system("rmmod imx_rpmsg");
+  system("modprobe imx_rpmsg");
   *ctrl_register = (*ctrl_register & START_CLEAR_MASK) | START_SET_MASK;
 }
 
 void M4Core::stop() {
   *ctrl_register |= STOP_SET_MASK;
-  system("rmmod imx_rpmsg.ko");
+  system("rmmod imx_rpmsg");
 }
 
 void M4Core::boot_firmware(const char *firmware_path) {
