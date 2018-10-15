@@ -24,6 +24,9 @@ int main(int argc, char **argv) {
 
   // TODO: wait for rpmsg channel announcement
   sleep(1);
+
+  // load rpmsg_char kernel module for /dev/rpmsg_ctrl device
+  system("modprobe rpmsg_char");
   
   // create endpoint for m4core rpmsg channel
   struct rpmsg_endpoint_info req;
