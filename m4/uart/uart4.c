@@ -35,7 +35,7 @@ int main(void) {
     printf("UART4 example started\r\n");
     uart_config_t config;
     UART_GetDefaultConfig(&config);
-    config.baudRate_Bps = 9600U;
+    config.baudRate_Bps = 115200U;
     config.enableTx = true;
     config.enableRx = true;
 
