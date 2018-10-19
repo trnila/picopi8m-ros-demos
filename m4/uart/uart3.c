@@ -53,7 +53,7 @@ int main(void) {
     UART_Init(UART3, &config, clk);
 
     uint8_t tx[] = "Hello world\r\n";
-    UART_WriteBlocking(UART4, tx, sizeof(tx) - 1);
+    UART_WriteBlocking(UART3, tx, sizeof(tx) - 1);
     for(;;) {
       UART_ReadBlocking(UART3, tx, 1);
 
