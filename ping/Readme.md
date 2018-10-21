@@ -5,11 +5,11 @@ This example demonstrates continuously running application on Linux that communi
 Run continuously running application:
 ```sh
 $ make sendping
- $ ./sendpings
+$ ./sendping
 ```
 
 Restart M4 core anytime you want:
 ```sh
- $ cd m4
- $ m4run ping
+$ cd m4
+$ m4run ping
 ```
