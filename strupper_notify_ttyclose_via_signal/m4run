@@ -1,0 +1,51 @@
+#!/bin/bash
+set -e
+
+if [ -z "$1" ]; then
+  echo Program name needed
+  exit 1
+fi
+
+cd m4
+
+# recompile m4 application
+mkdir -p build
+cd build
+cmake -DCMAKE_TOOLCHAIN_FILE="$M4SDK_PATH/tools/cmake_toolchain_files/armgcc_native.cmake" -DCMAKE_BUILD_TYPE=debug ..
+make -j4
+
+# stop m4 core
+m4fwloader stop
+
+# notify all processess to close that console file
+awake=""
+while read -r fd; do
+  if [ "$(/bin/readlink $fd)" == /dev/ttyRPMSG* ]; then
+    [[ "$fd" =~ /proc/([0-9]+) ]]
+    pid=${BASH_REMATCH[1]}
+
+    awake="$awake $pid"
+    kill -SIGUSR1 "$pid"
+
+    # wait until process closes that fd
+    while [ "$(/bin/readlink $fd)" == /dev/ttyRPMSG* ]; do
+      sleep 0.1
+      echo "waiting for $pid to close /dev/ttyRPMSG..."
+    done
+  fi
+done <<<$(find /proc/**/fd -type l)
+
+# reload rpmsg
+rmmod imx_rpmsg || true
+modprobe imx_rpmsg
+
+# load new application
+m4fwloader debug/$1.bin 0x7e0000
+
+# reopen /dev/ttyRPMSG in applications
+if [ -n "$awake" ]; then
+  echo "sigusr2 $awake"
+  kill -SIGUSR2 $awake
+fi
+
+echo M4 code updated
