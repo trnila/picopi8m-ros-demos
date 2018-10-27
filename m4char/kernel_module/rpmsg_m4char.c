@@ -17,16 +17,12 @@
 #include <linux/virtio.h>
 #include <linux/rpmsg.h>
 #include <linux/skbuff.h>
-#include <linux/time.h>
 
-#define MSG		"hello world!"
-static unsigned int rpmsg_pingpong;
-static struct timespec start;
+#define DEVICE_NAME "m4char"
 
 static int major;
 static struct class* char_class  = NULL;
 static struct device* char_device = NULL;
-#define DEVICE_NAME "m4char"
 
 static spinlock_t queue_lock;
 static struct sk_buff_head queue;
@@ -61,28 +57,8 @@ static int rpmsg_pingpong_cb(struct rpmsg_device *rpdev, void *data, int len,
 
 static int rpmsg_pingpong_probe(struct rpmsg_device *rpdev)
 {
-	int err;
-
 	dev_info(&rpdev->dev, "new channel: 0x%x -> 0x%x!\n",
 			rpdev->src, rpdev->dst);
-
-	/*
-	 * send a message to our remote processor, and tell remote
-	 * processor about this channel
-	 */
-	err = rpmsg_send(rpdev->ept, MSG, strlen(MSG));
-	if (err) {
-		dev_err(&rpdev->dev, "rpmsg_send failed: %d\n", err);
-		return err;
-	}
-
-	getnstimeofday(&start);
-	rpmsg_pingpong = 0;
-	err = rpmsg_sendto(rpdev->ept, (void *)(&rpmsg_pingpong), 4, rpdev->dst);
-	if (err) {
-		dev_err(&rpdev->dev, "rpmsg_send failed: %d\n", err);
-		return err;
-	}
 
 	rpmsg_device = rpdev;
 
