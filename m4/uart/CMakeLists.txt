@@ -15,3 +15,5 @@ target_link_libraries(uart3 mcuxpressosdk)
 add_firmware(uart4 uart4.c) 
 target_link_libraries(uart4 mcuxpressosdk)
 
+add_firmware(uart4_irq uart4_irq.c) 
+target_link_libraries(uart4_irq mcuxpressosdk)
