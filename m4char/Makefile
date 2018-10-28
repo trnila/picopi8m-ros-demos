@@ -1,4 +1,6 @@
-all: module m4 main run_m4
+LDFLAGS=-pthread
+
+all: module m4 run_m4 main count_recv
 
 .PHONY: module m4 run_m4 clean
 
