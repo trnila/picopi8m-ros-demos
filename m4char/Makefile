@@ -1,6 +1,6 @@
 LDFLAGS=-pthread
 
-all: module m4 run_m4 main count_recv
+all: module m4 run_m4 spam count_recv
 
 .PHONY: module m4 run_m4 clean
 

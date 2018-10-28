@@ -6,15 +6,19 @@
 #include <set>
 #include <mutex>
 #include <thread>
+#include <condition_variable>
 #include <cstring>
 
 std::mutex lock;
+std::condition_variable cond;
 std::set<uint32_t> items;
 
 void reader(int fd) {
   char buf[128];
   for(;;) {
       int len = read(fd, buf, sizeof(buf));
+      //sleep(1);
+
       if(len <= 0) {
         printf("read = %d\n", len);
       } else {
@@ -37,6 +41,7 @@ void reader(int fd) {
             items.erase(it);
           }
         }
+        cond.notify_one();
       }
     }
 }
@@ -56,7 +61,8 @@ int main() {
     printf("send: '%s'\n", buf);
 
     {
-      std::lock_guard<std::mutex> guard(lock);
+      std::unique_lock<std::mutex> lk(lock);
+      cond.wait(lk, [&]{return items.size() < 1000;});
       items.insert(i);
       printf("not received: %d\n", items.size());
     }
@@ -66,7 +72,6 @@ int main() {
       printf("write wrote %d but expected %d\n", r, len);
     }
 
-    usleep(1* 1000);
     i++;
   }
 
