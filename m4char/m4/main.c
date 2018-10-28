@@ -96,6 +96,7 @@ void app_task(void *param) {
     for(;;) {
         int len = 0;
         assert(rpmsg_queue_recv(my_rpmsg, my_queue, (unsigned long *)&remote_addr, rx_buf, sizeof(rx_buf), &len, RL_BLOCK) == 0);
+        rx_buf[len] = 0;
         printf("recv: '%s' (%d)\r\n", rx_buf, len);
 
         for(int i = 0; i < len; i++) {
