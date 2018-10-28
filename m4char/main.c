@@ -11,8 +11,12 @@ int main() {
   if(fork() == 0) {
     for(;;) {
       int len = read(fd, buf, sizeof(buf));
-      buf[len] = 0;
-      printf("recv: '%s'\n", buf);
+      if(len <= 0) {
+        printf("read = %d\n", len);
+      } else {
+        buf[len] = 0;
+        printf("recv: '%s'\n", buf);
+      }
     }
   }
 
@@ -20,8 +24,11 @@ int main() {
   for(;;) {
     int len = sprintf(buf, "ahoj %d", i);
     printf("send: '%s'\n", buf);
-    write(fd, buf, len);
-    usleep(100 * 1000);
+    int r = write(fd, buf, len);
+    if(r != len) {
+      printf("write wrote %d but expected %d\n", r, len);
+    }
+    usleep(1* 1000);
     i++;
   }
 

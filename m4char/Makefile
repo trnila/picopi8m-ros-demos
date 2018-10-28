@@ -1,4 +1,4 @@
-all: module m4 main
+all: module m4 main run_m4
 
 .PHONY: module m4 run_m4 clean
 

@@ -3,7 +3,7 @@
  * Copyright (c) 2016, Freescale Semiconductor, Inc.
  * Copyright 2016-2017 NXP
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted (subject to the limitations in the disclaimer below) provided
  *  that the following conditions are met:
@@ -58,12 +58,12 @@
 
 void BOARD_InitPins(void) {
     IOMUXC_SetPinMux(IOMUXC_UART3_RXD_UART3_RX, 0U);
-    IOMUXC_SetPinConfig(IOMUXC_UART3_RXD_UART3_RX, 
+    IOMUXC_SetPinConfig(IOMUXC_UART3_RXD_UART3_RX,
                         IOMUXC_SW_PAD_CTL_PAD_DSE(6U) |
                         IOMUXC_SW_PAD_CTL_PAD_SRE(1U) |
                         IOMUXC_SW_PAD_CTL_PAD_PUE_MASK);
     IOMUXC_SetPinMux(IOMUXC_UART3_TXD_UART3_TX, 0U);
-    IOMUXC_SetPinConfig(IOMUXC_UART3_TXD_UART3_TX, 
+    IOMUXC_SetPinConfig(IOMUXC_UART3_TXD_UART3_TX,
                         IOMUXC_SW_PAD_CTL_PAD_DSE(6U) |
                         IOMUXC_SW_PAD_CTL_PAD_SRE(1U) |
                         IOMUXC_SW_PAD_CTL_PAD_PUE_MASK);
@@ -71,6 +71,8 @@ void BOARD_InitPins(void) {
 
 void app_nameservice_isr_cb(unsigned int new_ept, const char *new_ept_name, unsigned long flags, void *user_data) {}
 
+char rx_buf[512];
+char tx_buf[512];
 void app_task(void *param) {
     volatile unsigned long remote_addr;
     struct rpmsg_lite_endpoint *volatile my_ept;
@@ -91,7 +93,22 @@ void app_task(void *param) {
     rpmsg_ns_announce(my_rpmsg, my_ept, RPMSG_LITE_NS_ANNOUNCE_STRING, RL_NS_CREATE);
     PRINTF("Nameservice announce sent.\r\n");
 
-    char *rx_buf;
+    for(;;) {
+        int len = 0;
+        assert(rpmsg_queue_recv(my_rpmsg, my_queue, (unsigned long *)&remote_addr, rx_buf, sizeof(rx_buf), &len, RL_BLOCK) == 0);
+        printf("recv: '%s' (%d)\r\n", rx_buf, len);
+
+        for(int i = 0; i < len; i++) {
+          tx_buf[i] = rx_buf[i];
+          if(tx_buf[i] >= 'a' && tx_buf[i] <= 'z') {
+            tx_buf[i] -= 'a' - 'A';
+          }
+        }
+
+        rpmsg_lite_send(my_rpmsg, my_ept, remote_addr, tx_buf, len, RL_BLOCK);
+    }
+
+    /*char *rx_buf;
     char *tx_buf;
     int result;
     int len;
@@ -103,7 +120,9 @@ void app_task(void *param) {
         rx_buf[len] = 0;
         printf("Got: '%s'\r\n", rx_buf);
 
+        printf("2\r\n");
         tx_buf = rpmsg_lite_alloc_tx_buffer(my_rpmsg, &size, RL_BLOCK);
+        printf("2\r\n");
         assert(tx_buf);
 
         for(int i = 0; i < len; i++) {
@@ -115,8 +134,11 @@ void app_task(void *param) {
 
         // return rx_buf
         assert(rpmsg_queue_nocopy_free(my_rpmsg, rx_buf) == 0);
+        printf("1\r\n");
         assert(rpmsg_lite_send_nocopy(my_rpmsg, my_ept, remote_addr, tx_buf, len) == 0);
+        printf("2\r\n");
     }
+    */
 
     for(;;);
 }

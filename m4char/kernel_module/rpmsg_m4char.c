@@ -37,8 +37,8 @@ static int rpmsg_pingpong_cb(struct rpmsg_device *rpdev, void *data, int len,
 	int err;
 	struct sk_buff *skb;
 
-	((char*) data)[len] = 0;
-	printk("ping response: '%s'\n", data);
+//	((char*) data)[len] = 0;
+//	printk("ping response: '%s'\n", data);
 
 	skb = alloc_skb(len, GFP_ATOMIC);
 	if (!skb)
@@ -129,14 +129,13 @@ static ssize_t dev_write(struct file *filep, const char *buffer, size_t len, lof
 		return -ENODEV;
 	}
 
-	kbuf = memdup_user(buffer, len + 1);
+	kbuf = memdup_user(buffer, len);
 	if (IS_ERR(kbuf)) {
 		mutex_unlock(&mtx);
 		return PTR_ERR(kbuf);
 	}
-	((char*) kbuf)[len] = 0;
-	printk("'%s'\n", kbuf);
-
+	//((char*) kbuf)[len] = 0;
+	//printk("'%s'\n", kbuf);
 
 	rpmsg_send(rpmsg_device->ept, kbuf, len);
 	kfree(kbuf);
