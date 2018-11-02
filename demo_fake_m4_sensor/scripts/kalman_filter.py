@@ -13,7 +13,7 @@ class KalmanFilter:
     dt = 1
 
     # standard deviation of measurement noise
-    R_std = 1000
+    R_std = 100
 
     # standard deviation of process noise
     Q_std = 0.5
