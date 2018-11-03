@@ -1,0 +1,24 @@
+#!/bin/bash
+set -e
+
+m4build 
+cd build
+
+bin=$1
+
+binaries="$(ls debug/*.bin | wc -l)"
+if [[ -z "$bin" ]]; then
+  if [[ "$binaries" -eq 1 ]]; then
+    bin="$(basename debug/*.bin)"
+  else
+    echo Program name needed
+    exit 1
+  fi
+fi
+
+m4ctl stop
+rmmod imx_rpmsg || true
+modprobe imx_rpmsg
+echo "loading $1"
+m4ctl load "debug/$bin"
+echo flashed

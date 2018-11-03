@@ -1,0 +1,6 @@
+#!/bin/sh
+
+mkdir -p build
+cd build
+cmake -DCMAKE_TOOLCHAIN_FILE="$M4SDK_PATH/tools/cmake_toolchain_files/armgcc_native.cmake" -DCMAKE_BUILD_TYPE=debug ..
+make -j4
