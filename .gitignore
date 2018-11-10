@@ -1,2 +1,10 @@
 **/build/
 tools/m4ctl
+
+*.o
+*.ko
+*.mod*
+*.cmd
+.tmp_versions/
+modules.order
+Module.symvers
