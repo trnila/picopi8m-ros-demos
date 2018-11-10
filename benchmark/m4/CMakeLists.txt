@@ -9,3 +9,6 @@ include_directories(.)
 
 add_firmware(ping_zerocopy main.c) 
 target_link_libraries(ping_zerocopy mcuxpressosdk freertos rpmsg_lite)
+
+add_firmware(mu main_mu.c) 
+target_link_libraries(mu mcuxpressosdk freertos rpmsg_lite)

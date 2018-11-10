@@ -18,6 +18,7 @@
 #include <linux/rpmsg.h>
 #include <linux/time.h>
 #include <linux/proc_fs.h>
+#include "common.h"
 
 #define PROCFS_NAME     "ping_benchmark"
 #define COUNT           10000
@@ -27,19 +28,6 @@ static struct timespec start;
 static uint64_t response_time[COUNT];
 static int failed;
 static int running;
-
-static uint64_t timespec_diff_ns(struct timespec *t1, struct timespec *t2)
-{
-	struct timespec diff;
-	if (t2->tv_nsec - t1->tv_nsec < 0) {
-		diff.tv_sec  = t2->tv_sec - t1->tv_sec - 1;
-		diff.tv_nsec = t2->tv_nsec - t1->tv_nsec + 1000000000UL;
-	} else {
-		diff.tv_sec  = t2->tv_sec - t1->tv_sec;
-		diff.tv_nsec = t2->tv_nsec - t1->tv_nsec;
-	}
-	return (diff.tv_sec * 1000000000UL + diff.tv_nsec);
-}
 
 static int rpmsg_pingpong_cb(struct rpmsg_device *rpdev, void *data, int len,
 						void *priv, u32 src)
