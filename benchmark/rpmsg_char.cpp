@@ -12,6 +12,12 @@
 #include "benchmark.h"
 
 int main(int argc, char **argv) {
+  if(argc != 2) {
+    fprintf(stderr, "Usage: %s total pings\n", argv[0]);
+    return -1;
+  }
+  int total = atoi(argv[1]);
+
   struct rpmsg_endpoint_info req;
   strcpy(req.name, "rpmsg-openamp-demo-channel");
   req.src = 0x11;
@@ -38,8 +44,7 @@ int main(int argc, char **argv) {
   }
 
   int ping = 0;
-  while(ping < 1000) {
-    printf("Sending ping %d\n", ping);
+  while(ping < total) {
     benchmark_start();
     if(write(d, &ping, sizeof(ping)) <= 0) {
       close(d);
@@ -52,7 +57,7 @@ int main(int argc, char **argv) {
       break;
     }
 
-    printf("delay: %llu ns\n", benchmark_stop());
+    printf("%llu\n", benchmark_stop());
 
     ping++;
     if(ping != got) {

@@ -96,21 +96,21 @@ void app_task(void *param) {
     int result;
     int len;
     int size;
-    result = rpmsg_queue_recv_nocopy(my_rpmsg, my_queue, (unsigned long *) &remote_addr, (uint32_t **) &rx_buf, &len, RL_BLOCK);
-    printf("recv: %s\n", (char*) rx_buf);
-    assert(rpmsg_queue_nocopy_free(my_rpmsg, rx_buf) == 0);
     for(;;) {
         result = rpmsg_queue_recv_nocopy(my_rpmsg, my_queue, (unsigned long *) &remote_addr, (uint32_t **) &rx_buf, &len, RL_BLOCK);
         assert(result == 0);
 
-        tx_buf = rpmsg_lite_alloc_tx_buffer(my_rpmsg, &size, RL_BLOCK);
-        assert(tx_buf);
+	// dont send response to 'hello world' from imx_rpmsg_tty
+	if(len == 4) {
+		tx_buf = rpmsg_lite_alloc_tx_buffer(my_rpmsg, &size, RL_BLOCK);
+		assert(tx_buf);
 
-        // ping ++
-        *tx_buf = *rx_buf + 1;
+		// ping ++
+		*tx_buf = *rx_buf + 1;
 
-        // send ping back
-        assert(rpmsg_lite_send_nocopy(my_rpmsg, my_ept, remote_addr, tx_buf, len) == 0);
+		// send ping back
+		assert(rpmsg_lite_send_nocopy(my_rpmsg, my_ept, remote_addr, tx_buf, len) == 0);
+	}
         // return rx_buf
         assert(rpmsg_queue_nocopy_free(my_rpmsg, rx_buf) == 0);
     }

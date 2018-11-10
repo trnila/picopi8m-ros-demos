@@ -17,10 +17,16 @@
 #include <linux/virtio.h>
 #include <linux/rpmsg.h>
 #include <linux/time.h>
+#include <linux/proc_fs.h>
 
-#define MSG		"hello world!"
+#define PROCFS_NAME     "ping_benchmark"
+#define COUNT           10000
+
 static unsigned int rpmsg_pingpong;
 static struct timespec start;
+static uint64_t response_time[COUNT];
+static int failed;
+static int running;
 
 static uint64_t timespec_diff_ns(struct timespec *t1, struct timespec *t2)
 {
@@ -40,21 +46,35 @@ static int rpmsg_pingpong_cb(struct rpmsg_device *rpdev, void *data, int len,
 {
 	int err;
 	struct timespec end;
+	unsigned int recv;
+	int index;
 
+	/* capture receive time */
 	getnstimeofday(&end);
-	printk("ping response: %llu ns\n", timespec_diff_ns(&start, &end));
+	index = rpmsg_pingpong / 2 - 1;
 
-	/* reply */
-	rpmsg_pingpong = *(unsigned int *)data;
-	pr_info("get %d (src: 0x%x)\n", rpmsg_pingpong, src);
+	if(index >= 0 && index < COUNT) {
+		response_time[index] = timespec_diff_ns(&start, &end);
+
+		/* check received ping */
+		recv = *(unsigned int *)data;
+		if(recv != rpmsg_pingpong + 1) {
+			printk("received invalid pong: %d, expected: %d\n", recv, rpmsg_pingpong);
+			failed = 1;
+			return 0;
+		}
+		rpmsg_pingpong = recv;
+	}
 
 	/* pingpongs should not live forever */
-	if (rpmsg_pingpong > 10000) {
-		dev_info(&rpdev->dev, "goodbye!\n");
+	if (rpmsg_pingpong >= 2 * COUNT) {
+		dev_info(&rpdev->dev, "Measurement done\n");
+		running = 0;
 		return 0;
 	}
 	rpmsg_pingpong++;
 
+	/* capture current time and send ping to m4 */
 	getnstimeofday(&start);
 	err = rpmsg_sendto(rpdev->ept, (void *)(&rpmsg_pingpong), 4, src);
 
@@ -71,17 +91,9 @@ static int rpmsg_pingpong_probe(struct rpmsg_device *rpdev)
 	dev_info(&rpdev->dev, "new channel: 0x%x -> 0x%x!\n",
 			rpdev->src, rpdev->dst);
 
-	/*
-	 * send a message to our remote processor, and tell remote
-	 * processor about this channel
-	 */
-	err = rpmsg_send(rpdev->ept, MSG, strlen(MSG));
-	if (err) {
-		dev_err(&rpdev->dev, "rpmsg_send failed: %d\n", err);
-		return err;
-	}
+	running = 1;
 
-	getnstimeofday(&start);
+	/* kick first message without measuring */
 	rpmsg_pingpong = 0;
 	err = rpmsg_sendto(rpdev->ept, (void *)(&rpmsg_pingpong), 4, rpdev->dst);
 	if (err) {
@@ -94,12 +106,12 @@ static int rpmsg_pingpong_probe(struct rpmsg_device *rpdev)
 
 static void rpmsg_pingpong_remove(struct rpmsg_device *rpdev)
 {
+	running = 0;
 	dev_info(&rpdev->dev, "rpmsg pingpong driver is removed\n");
 }
 
 static struct rpmsg_device_id rpmsg_driver_pingpong_id_table[] = {
 	{ .name	= "rpmsg-openamp-demo-channel" },
-	{ .name	= "rpmsg-openamp-demo-channel-1" },
 	{ },
 };
 MODULE_DEVICE_TABLE(rpmsg, rpmsg_driver_pingpong_id_table);
@@ -113,18 +125,58 @@ static struct rpmsg_driver rpmsg_pingpong_driver = {
 	.remove		= rpmsg_pingpong_remove,
 };
 
+static int show(struct seq_file* seq, void* priv) {
+	int i;
+
+	if(failed) {
+		return -EIO;
+	}
+
+	if(running) {
+		return -EBUSY;
+	}
+
+	for(i = 0; i < COUNT; i++) {
+		seq_printf(seq, "%llu\n", response_time[i]);
+	}
+	return 0;
+}
+
+static int result_open(struct inode *inode, struct file* file) {
+	return single_open(file, show, NULL);	
+}
+
+static struct file_operations result_file_ops = {
+	.owner   = THIS_MODULE,
+	.open    = result_open,
+	.read    = seq_read,
+	.llseek  = seq_lseek,
+	.release = seq_release
+};
+
 static int __init init(void)
 {
-	return register_rpmsg_driver(&rpmsg_pingpong_driver);
+	int ret;
+	ret = register_rpmsg_driver(&rpmsg_pingpong_driver);
+	if(ret != 0) {
+		return ret;
+	}
+
+	if(!proc_create(PROCFS_NAME, 0644, NULL, &result_file_ops)) {
+		unregister_rpmsg_driver(&rpmsg_pingpong_driver);
+		return -1;
+	}
+
+	return ret;
 }
 
 static void __exit fini(void)
 {
 	unregister_rpmsg_driver(&rpmsg_pingpong_driver);
+	remove_proc_entry(PROCFS_NAME, NULL);
 }
 module_init(init);
 module_exit(fini);
 
-MODULE_AUTHOR("Freescale Semiconductor, Inc.");
-MODULE_DESCRIPTION("iMX virtio remote processor messaging pingpong driver");
+MODULE_DESCRIPTION("benchmark rpmsg ping response time");
 MODULE_LICENSE("GPL v2");

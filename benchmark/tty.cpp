@@ -16,35 +16,37 @@ int open_tty() {
   struct termios tty;
   memset(&tty, 0, sizeof tty);
   if (tcgetattr (fd, &tty) != 0) {
-    printf("err\n");
+    perror("tcgetattr");
+    return -1;
   }
 
   int speed = B115200;
   cfsetospeed (&tty, speed);
   cfsetispeed (&tty, speed);
 
-	tty.c_cflag = (tty.c_cflag & ~CSIZE) | CS8;
-	tty.c_iflag &= ~IGNBRK;
-	tty.c_lflag = 0;
-	tty.c_oflag = 0;
-	tty.c_cc[VMIN]  = sizeof(int); // receive exatly 4 bytes
-	tty.c_cc[VTIME] = 0;
+  tty.c_cflag = (tty.c_cflag & ~CSIZE) | CS8;   // 8 bits
+  tty.c_cflag |= CREAD;                         // enable receiver
 
-	tty.c_iflag &= ~(IXON | IXOFF | IXANY); // shut off xon/xoff ctrl
+  // do not translate carriage return on binary data
+  tty.c_iflag = 0;
+  tty.c_lflag = 0;
+  tty.c_oflag = 0;
 
-	tty.c_cflag |= (CLOCAL | CREAD);// ignore modem controls,
-	// enable reading
-	tty.c_cflag &= ~(PARENB | PARODD);      // shut off parity
-	tty.c_cflag |= 1; // parity
-	tty.c_cflag &= ~CSTOPB;
-	tty.c_cflag &= ~CRTSCTS;
+  tty.c_cc[VMIN]  = sizeof(int);                // receive exatly 4 bytes
+  tty.c_cc[VTIME] = 0;                          // wait forever for them
 
-	tcsetattr (fd, TCSANOW, &tty);
-
+  tcsetattr (fd, TCSANOW, &tty);
   return fd;
 }
 
-int main() {
+int main(int argc, char** argv) {
+  if(argc != 2) {
+    fprintf(stderr, "Usage: %s total pings\n", argv[0]);
+    return -1;
+  }
+
+  int total = atoi(argv[1]);
+
   int fd = open_tty();
   if(fd < 0) {
     fprintf(stderr, "could not open /dev/ttyRPMSG30");
@@ -52,27 +54,24 @@ int main() {
   }
 
   uint32_t ping = 0;
-	for(;;) {
+  while(ping < total) {
     benchmark_start();
-		if(write(fd, &ping, sizeof(ping)) != sizeof(ping)) {
-      printf("Failed to write");
+    if(write(fd, &ping, sizeof(ping)) != sizeof(ping)) {
+      perror("Failed to write");
       return -1;
     }
     ping++;
 
-
     uint32_t recv = 0;
     if(read(fd, &recv, sizeof(recv)) != sizeof(recv)) {
-      printf("failed to read");
+      perror("failed to read");
       return -1;
     }
     uint64_t time_ns = benchmark_stop();
     if(recv != ping) {
-      printf("ERR %d %d\n", recv, ping);
-      sleep(1);
-//      return -1;
+      fprintf(stderr, "ERR %d %d\n", recv, ping);
+      return -1;
     }
-    printf("received: %d %d (%d)\n", ping, time_ns, recv);
-	}
-
+    printf("%llu\n", time_ns);
+  }
 }
