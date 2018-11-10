@@ -9,7 +9,15 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  M4Core core;
+  bool with_rpmsg = true;
+
+  for(int i = 1; i < argc; i++) {
+    if(strcmp(argv[i], "--no-rpmsg") == 0) {
+      with_rpmsg = false;
+    }
+  }
+
+  M4Core core(with_rpmsg);
 
   if(strcmp(argv[1], "stop") == 0) {
     core.stop();

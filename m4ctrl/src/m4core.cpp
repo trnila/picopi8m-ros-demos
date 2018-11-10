@@ -26,7 +26,7 @@ uint8_t* do_map(int fd, uint64_t phys_addr, int size) {
   return addr + (phys_addr & PAGE_MASK);
 }
 
-M4Core::M4Core() {
+M4Core::M4Core(bool manage_rpmsg): manage_rpmsg(manage_rpmsg) {
   int fd = open("/dev/mem", O_RDWR | O_SYNC);
   if(!fd) {
     throw std::runtime_error("Could not open /dev/mem");
@@ -48,14 +48,18 @@ M4Core::~M4Core() {
 }
 
 void M4Core::start() {
-  system("rmmod imx_rpmsg");
-  system("modprobe imx_rpmsg");
+  if(manage_rpmsg) {
+    system("rmmod imx_rpmsg");
+    system("modprobe imx_rpmsg");
+  }
   *ctrl_register = (*ctrl_register & START_CLEAR_MASK) | START_SET_MASK;
 }
 
 void M4Core::stop() {
   *ctrl_register |= STOP_SET_MASK;
-  system("rmmod imx_rpmsg");
+  if(manage_rpmsg) {
+    system("rmmod imx_rpmsg");
+  }
 }
 
 void M4Core::boot_firmware(const char *firmware_path) {
@@ -72,7 +76,7 @@ void M4Core::boot_firmware(const char *firmware_path) {
 
   if(size >= TCM_SIZE) {
     fclose(f);
-    throw std::runtime_error("Firmware wont fit in TCM");
+    throw std::runtime_error("Firmware (" + std::to_string(size) + ") wont fit in TCM");
   }
 
   char firmware[TCM_SIZE];

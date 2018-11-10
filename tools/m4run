@@ -5,6 +5,7 @@ m4build
 cd build
 
 bin=$1
+shift
 
 binaries="$(ls debug/*.bin | wc -l)"
 if [[ -z "$bin" ]]; then
@@ -14,11 +15,9 @@ if [[ -z "$bin" ]]; then
     echo Program name needed
     exit 1
   fi
+else
+  bin="$bin.bin"
 fi
 
-m4ctl stop
-rmmod imx_rpmsg || true
-modprobe imx_rpmsg
-echo "loading $1"
-m4ctl load "debug/$bin"
-echo flashed
+m4ctl load "debug/$bin" "$@"
+echo ok
