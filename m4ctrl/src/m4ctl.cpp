@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <string.h>
-
 #include "m4core.h"
 
 int main(int argc, char** argv) {

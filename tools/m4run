@@ -5,7 +5,6 @@ m4build
 cd build
 
 bin=$1
-shift
 
 binaries="$(ls debug/*.bin | wc -l)"
 if [[ -z "$bin" ]]; then
@@ -17,6 +16,7 @@ if [[ -z "$bin" ]]; then
   fi
 else
   bin="$bin.bin"
+  shift
 fi
 
 m4ctl load "debug/$bin" "$@"
