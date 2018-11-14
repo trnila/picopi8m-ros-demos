@@ -8,3 +8,6 @@ include_directories(.)
 
 add_firmware(1wire_dht 1wire_dht.c) 
 target_link_libraries(1wire_dht mcuxpressosdk)
+
+add_firmware(1wire_dht_irq 1wire_dht_irq.c) 
+target_link_libraries(1wire_dht_irq mcuxpressosdk)
