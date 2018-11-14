@@ -133,10 +133,10 @@ int main(void) {
         break;
       }
 
+      data[b] <<= 1;
       if(high > low) {
         data[b] |= 1;
       }
-      data[b] <<= 1;
     }
 
     // | RH high | RH low | T high | T low | checksum |
