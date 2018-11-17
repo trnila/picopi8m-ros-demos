@@ -8,3 +8,6 @@ include_directories(.)
 
 add_firmware(mpu_disable_ddr mpu_disable_ddr.c) 
 target_link_libraries(mpu_disable_ddr mcuxpressosdk)
+
+add_firmware(mpu_freertos mpu_freertos.c) 
+target_link_libraries(mpu_freertos mcuxpressosdk freertos)
