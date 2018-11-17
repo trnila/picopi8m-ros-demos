@@ -71,11 +71,11 @@ int main(void) {
   //MPU->RASR = (0x3 << MPU_RASR_AP_Pos) | (31 << MPU_RASR_SIZE_Pos) | MPU_RASR_ENABLE_Msk;
 
 
-  /* enable mpu and use default cortex-m map in privileged mode */
-  MPU->CTRL = MPU_CTRL_ENABLE_Msk | MPU_CTRL_PRIVDEFENA_Msk;
-
   /* enable MemManage handlers */
   SCB->SHCSR |= SCB_SHCSR_MEMFAULTENA_Msk;
+
+  /* enable mpu and use default cortex-m map in privileged mode */
+  MPU->CTRL = MPU_CTRL_ENABLE_Msk | MPU_CTRL_PRIVDEFENA_Msk;
 
   /* Memory barriers to ensure subsequence data & instruction
    * transfers using updated MPU settings.
