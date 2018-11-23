@@ -2,11 +2,8 @@
 #include "fsl_debug_console.h"
 #include "fsl_common.h"
 #include "fsl_i2c.h"
+#include "ds1621.h"
 
-#define DS1621_READ_TEMP     0xAA
-#define DS1621_READ_COUNTER  0xA8
-#define DS1621_READ_SLOPE    0xA9
-#define DS1621_START_CONVERT 0xEE
 
 void i2c_write_byte(I2C_Type* i2c, uint8_t addr, uint8_t data) {
     i2c_master_transfer_t masterXfer;

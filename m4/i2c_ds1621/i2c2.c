@@ -7,8 +7,7 @@
 #include "fsl_gpio.h"
 #include "pin_mux.h"
 #include "clock_config.h"
-
-#define DS1621_ADDR          0x48
+#include "ds1621.h"
 
 void BOARD_InitPins(void) {
     IOMUXC_SetPinMux(IOMUXC_UART3_RXD_UART3_RX, 0U);
@@ -22,7 +21,6 @@ void BOARD_InitPins(void) {
                         IOMUXC_SW_PAD_CTL_PAD_SRE(1U) |
                         IOMUXC_SW_PAD_CTL_PAD_PUE_MASK);
 
-    // set alternate function I2C2 on 145, 144 pins
     IOMUXC_SetPinMux(IOMUXC_I2C2_SCL_I2C2_SCL, 1U);
     IOMUXC_SetPinConfig(IOMUXC_I2C2_SCL_I2C2_SCL,
                         IOMUXC_SW_PAD_CTL_PAD_DSE(6U) |

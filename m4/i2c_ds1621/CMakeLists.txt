@@ -11,3 +11,6 @@ target_link_libraries(i2c2 mcuxpressosdk)
 
 add_firmware(i2c3 i2c3.c ds1621) 
 target_link_libraries(i2c3 mcuxpressosdk)
+
+add_firmware(i2c2_rtos i2c2_rtos.c) 
+target_link_libraries(i2c2_rtos mcuxpressosdk freertos)
