@@ -9,7 +9,7 @@ void i2c_write_byte(I2C_Type* i2c, uint8_t addr, uint8_t data) {
     i2c_master_transfer_t masterXfer;
     masterXfer.slaveAddress = addr;
     masterXfer.direction = kI2C_Write;
-    masterXfer.subaddress = (uint32_t) NULL;
+    masterXfer.subaddress = 0;
     masterXfer.subaddressSize = 0;
     masterXfer.data = &data;
     masterXfer.dataSize = 1;
@@ -21,7 +21,7 @@ void i2c_read(I2C_Type* i2c, uint8_t addr, uint8_t reg, uint8_t *data, int size)
     i2c_master_transfer_t masterXfer;
     masterXfer.slaveAddress = addr;
     masterXfer.direction = kI2C_Write;
-    masterXfer.subaddress = (uint32_t) NULL;
+    masterXfer.subaddress = 0;
     masterXfer.subaddressSize = 0;
     masterXfer.data = &reg;
     masterXfer.dataSize = 1;
@@ -30,7 +30,7 @@ void i2c_read(I2C_Type* i2c, uint8_t addr, uint8_t reg, uint8_t *data, int size)
 
     masterXfer.slaveAddress = addr;
     masterXfer.direction = kI2C_Read;
-    masterXfer.subaddress = (uint32_t) NULL;
+    masterXfer.subaddress = 0;
     masterXfer.subaddressSize = 0;
     masterXfer.data = data;
     masterXfer.dataSize = size;
