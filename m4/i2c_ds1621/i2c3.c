@@ -22,24 +22,25 @@ void BOARD_InitPins(void) {
                         IOMUXC_SW_PAD_CTL_PAD_SRE(1U) |
                         IOMUXC_SW_PAD_CTL_PAD_PUE_MASK);
 
-    // set alternate function I2C3 on 147, 146 pins
-    IOMUXC_SetPinMux(IOMUXC_I2C3_SCL_I2C3_SCL, 0U);
-    IOMUXC_SetPinConfig(IOMUXC_I2C3_SCL_I2C3_SCL,
-                        IOMUXC_SW_PAD_CTL_PAD_DSE(6U) |
-                        IOMUXC_SW_PAD_CTL_PAD_SRE(2U) |
-                        IOMUXC_SW_PAD_CTL_PAD_PUE_MASK |
-                        IOMUXC_SW_PAD_CTL_PAD_VSEL(4U));
-    IOMUXC_SetPinMux(IOMUXC_I2C3_SDA_I2C3_SDA, 0U);
-    IOMUXC_SetPinConfig(IOMUXC_I2C3_SDA_I2C3_SDA,
-                        IOMUXC_SW_PAD_CTL_PAD_DSE(6U) |
-                        IOMUXC_SW_PAD_CTL_PAD_SRE(2U) |
-                        IOMUXC_SW_PAD_CTL_PAD_PUE_MASK);
 
+   // set alternate function I2C3 
+   IOMUXC_SetPinMux(IOMUXC_I2C3_SCL_I2C3_SCL, 1U); // SION bit (1) IS NEEDED, so I2C can receive input on the pin
+   IOMUXC_SetPinConfig(IOMUXC_I2C3_SCL_I2C3_SCL, 
+                        IOMUXC_SW_PAD_CTL_PAD_DSE(7U) |   // Drive Strength Field - 40 ohm (111)
+                        IOMUXC_SW_PAD_CTL_PAD_SRE(3U) |   // Slew Rate Field - Max 200 Mhz (11)
+                        IOMUXC_SW_PAD_CTL_PAD_ODE_MASK |  // Open Drain Enabled (1)
+                        IOMUXC_SW_PAD_CTL_PAD_PUE_MASK);  // Pull up Enabled (1)
+    IOMUXC_SetPinMux(IOMUXC_I2C3_SDA_I2C3_SDA, 1U);
+    IOMUXC_SetPinConfig(IOMUXC_I2C3_SDA_I2C3_SDA, 
+                        IOMUXC_SW_PAD_CTL_PAD_DSE(7U) |
+                        IOMUXC_SW_PAD_CTL_PAD_SRE(3U) |
+                        IOMUXC_SW_PAD_CTL_PAD_ODE_MASK |
+                        IOMUXC_SW_PAD_CTL_PAD_PUE_MASK);
+   
 }
 
 void keep_reading(I2C_Type* i2c, uint8_t addr);
 
-// TODO: i2c3 currently not working, SDA/SCL stays LOW at the start of communication
 int main(void) {
     BOARD_RdcInit();
     BOARD_InitPins();
@@ -60,7 +61,7 @@ int main(void) {
     masterConfig.baudRate_Bps = 100000U;
     I2C_MasterInit(I2C3, &masterConfig, clk);
 
-		keep_reading(I2C3, DS1621_ADDR);
+    keep_reading(I2C3, DS1621_ADDR);
 
     for(;;);
 }
