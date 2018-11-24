@@ -14,3 +14,9 @@ target_link_libraries(spi2 mcuxpressosdk)
 
 add_firmware(spi3 spi3.c) 
 target_link_libraries(spi3 mcuxpressosdk)
+
+add_firmware(spi1_hw_cs spi1_hw_cs.c) 
+target_link_libraries(spi1_hw_cs mcuxpressosdk)
+
+add_firmware(spi1_gpio_cs spi1_gpio_cs.c) 
+target_link_libraries(spi1_gpio_cs mcuxpressosdk)
