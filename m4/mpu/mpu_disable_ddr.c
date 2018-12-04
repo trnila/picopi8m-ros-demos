@@ -46,14 +46,19 @@ void MemManage_Handler(void) {
 
 
 volatile int x;
+
 int main(void) {
   BOARD_RdcInit();
   BOARD_InitPins();
   BOARD_BootClockRUN();
   BOARD_InitDebugConsole();
 
-  __DMB();
+  // before MPU setup we should successfully access any location
+  x = *((uint32_t*) 0x40000000);
+  GPIO_PinWrite(GPIO4, 26, 1);
 
+
+  __DMB();
   /* Disable the MPU until we fully configure it */
   MPU->CTRL = 0;
 
@@ -67,15 +72,14 @@ int main(void) {
 
   /* configure full aceess to DDR (0x4000_0000 to 0xC000_0000) - ~2 GB - 2^31
      uncomment to access linux memory from M4 */
-  //MPU->RBAR = (0x40000000U & MPU_RBAR_ADDR_Msk) | MPU_RBAR_VALID_Msk | (1 << MPU_RBAR_REGION_Pos);
+  //MPU->RBAR = (0x40000000U & MPU_RBAR_ADDR_Msk) | MPU_RBAR_VALID_Msk | (2 << MPU_RBAR_REGION_Pos);
   //MPU->RASR = (0x3 << MPU_RASR_AP_Pos) | (31 << MPU_RASR_SIZE_Pos) | MPU_RASR_ENABLE_Msk;
-
 
   /* enable MemManage handlers */
   SCB->SHCSR |= SCB_SHCSR_MEMFAULTENA_Msk;
 
   /* enable mpu and use default cortex-m map in privileged mode */
-  MPU->CTRL = MPU_CTRL_ENABLE_Msk | MPU_CTRL_PRIVDEFENA_Msk;
+  MPU->CTRL = MPU_CTRL_ENABLE_Msk;
 
   /* Memory barriers to ensure subsequence data & instruction
    * transfers using updated MPU settings.
@@ -83,37 +87,13 @@ int main(void) {
   __DSB();
   __ISB();
 
-  // we should successfully access this location in privileged mode
+  // we should successfully access peripherals
+  GPIO_PinWrite(GPIO4, 26, 1);
+  printf("Peripheral accessed...\r\n");
+
+  // but not DDR memory
   x = *((uint32_t*) 0x40000000);
 
-  /* switch to unprivileged mode - 0 bit in CONTROL
-   * further accesses to undefined mpu regions should trigger MemManage exceptions
-   */
-  __asm volatile (
-      "mrs r0, control\n"
-      "orr r0, #1\n"
-      "msr control, r0"
-      ::: "r0", "memory"
-      );    
-
-
-  // access peripherals
-  gpio_pin_config_t conf;
-  conf.direction = kGPIO_DigitalInput;
-  conf.outputLogic = 0;
-  conf.interruptMode = kGPIO_NoIntmode;
-  GPIO_PinInit(GPIO4, 26, &conf);
-
-  // this should be okay
-  volatile int a;
-  a++;
-  x++;
-  GPIO_PinWrite(GPIO4, 26, a&1);
-
-  // expect MemManage exception!
-  x = *((uint32_t*) 0x40000000);
-
-  printf("Access granted\r\n");
-
+  printf("Failed: could access DDR memory\r\n");
   for(;;);
 }
