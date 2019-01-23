@@ -1,0 +1,7 @@
+<launch>
+	<param name="serial_node/baud" value="115200" />
+	<param name="serial_node/port" value="/dev/ttyRPMSG30" />
+	<param name="fake_sensor/sigma" value="1.0" />
+	<node name="serial_node" pkg="rosserial_arduino" type="serial_node.py" />
+	<node name="m4_loader" pkg="m4ctrl" type="m4ctl" args="load $(find rosserial_rpmsg)/example/build/debug/fake_sensor.bin" />
+</launch>
