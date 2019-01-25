@@ -52,7 +52,7 @@ struct ring {
   struct vring_used tst;
 };
 
-void dump(uint64_t start) {
+void dump(uint64_t start, int dump_content) {
   struct ring* shm = (struct ring*) mmap(0, LEN, PROT_READ | PROT_WRITE, MAP_SHARED, fd, start);
 
   //char *base = mmap(0, COUNT * shm->desc[0].len, PROT_READ | PROT_WRITE, MAP_SHARED, fd, shm->desc[0].addr);
@@ -63,7 +63,7 @@ void dump(uint64_t start) {
     char *ta = a, *tb = b;
     a[0] = b[0] = 0;
     //char *ptr = base + (shm->desc[i].addr - shm->desc[0].addr);
-    if(shm->desc[i].addr) {
+    if(shm->desc[i].addr && dump_content) {
       char *ptr = mmap(0, shm->desc[i].len, PROT_READ | PROT_WRITE, MAP_SHARED, fd, shm->desc[i].addr & ~PAGE_SIZE) + ((uint64_t) shm->desc[i].addr & PAGE_SIZE);
       if(ptr != MAP_FAILED) {
         for(int j = 0; j < shm->desc[i].len; j++) {
@@ -108,16 +108,28 @@ void dump(uint64_t start) {
 }
 
 
-int main() {
+int main(int argc, char** argv) {
+  int dump_content = 1;
+
+  for(int i = 1; i < argc; i++) {
+    if(strcmp(argv[i], "--no-content") == 0) {
+      dump_content = 0;
+    } else {
+      fprintf(stderr, "Unknown parameter: %s\n", argv[i]);
+      exit(1);
+    }
+  }
+
+
   fd = open("/dev/mem", O_RDWR | O_SYNC);
   if (fd < 0) {
     return 1;
   }
 
   printf("RING 1\n");
-  dump(START);
+  dump(START, dump_content);
   printf("RING 2\n");
-  dump(START + 0x8000);
+  dump(START + 0x8000, dump_content);
 
   return 0;
 }
