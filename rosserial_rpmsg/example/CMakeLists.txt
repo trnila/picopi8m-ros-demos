@@ -8,8 +8,13 @@ find_package(rpmsg REQUIRED)
 include_directories(.)
 include_directories(ros_lib)
 
-add_firmware(hello hello.cpp pin_mux.c ros_lib/time.cpp) 
+add_firmware(hello hello.cpp pin_mux.c ros_lib/time.cpp)
 target_link_libraries(hello mcuxpressosdk freertos rpmsg_lite)
 
-add_firmware(fake_sensor fake_sensor.cpp pin_mux.c ros_lib/time.cpp) 
-target_link_libraries(fake_sensor mcuxpressosdk freertos rpmsg_lite)
+add_firmware(fake_sensor_m4char fake_sensor.cpp pin_mux.c ros_lib/time.cpp) 
+target_link_libraries(fake_sensor_m4char mcuxpressosdk freertos rpmsg_lite)
+target_compile_definitions(fake_sensor_m4char PRIVATE RPMSG_CHANNEL="m4-channel") 
+
+add_firmware(fake_sensor_tty fake_sensor.cpp pin_mux.c ros_lib/time.cpp) 
+target_link_libraries(fake_sensor_tty mcuxpressosdk freertos rpmsg_lite)
+target_compile_definitions(fake_sensor_tty PRIVATE RPMSG_CHANNEL="rpmsg-virtual-tty-channel-1") 

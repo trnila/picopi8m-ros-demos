@@ -4,22 +4,16 @@
 #include "rpmsg_lite.h"
 #include "rpmsg_queue.h"
 #include "rpmsg_ns.h"
+#include "rpmsg_rsc_table.h"
 
-#ifndef RPMSG_LITE_SHMEM_BASE
-#define RPMSG_LITE_SHMEM_BASE (0xB8000000U)
-#endif
-
-#ifndef RPMSG_LITE_NS_ANNOUNCE_STRING
-#define RPMSG_LITE_NS_ANNOUNCE_STRING "rpmsg-virtual-tty-channel-1"
+#ifndef RPMSG_CHANNEL
+//#define RPMSG_CHANNEL "rpmsg-virtual-tty-channel-1"
+#define RPMSG_CHANNEL "m4-channel"
 #endif
 
 #ifndef LOCAL_EPT_ADDR
 #define LOCAL_EPT_ADDR (30)
 #endif
-
-void app_nameservice_isr_cb(unsigned int new_ept, const char *new_ept_name, unsigned long flags, void *user_data)
-{
-}
 
 class RpmsgHardware {
   public:
@@ -33,9 +27,8 @@ class RpmsgHardware {
       rx_data_pos(0) {}
 
     void init() {
-      rpmsg = rpmsg_lite_remote_init((void *)RPMSG_LITE_SHMEM_BASE, RPMSG_LITE_LINK_ID, RL_NO_FLAGS);
+      rpmsg = create_rpmsg_from_resources();
       assert(rpmsg != NULL);
-      rpmsg->link_state = 1;
 
       rcv_queue = rpmsg_queue_create(rpmsg);
       assert(rcv_queue != NULL);
@@ -43,10 +36,7 @@ class RpmsgHardware {
       endpoint = rpmsg_lite_create_ept(rpmsg, LOCAL_EPT_ADDR, rpmsg_queue_rx_cb, rcv_queue);
       assert(endpoint != NULL);
 
-      rpmsg_ns_handle h = rpmsg_ns_bind(rpmsg, app_nameservice_isr_cb, NULL);
-      assert(h != NULL);
-
-      int result = rpmsg_ns_announce(rpmsg, endpoint, RPMSG_LITE_NS_ANNOUNCE_STRING, RL_NS_CREATE);
+      int result = rpmsg_ns_announce(rpmsg, endpoint, (char*) RPMSG_CHANNEL, RL_NS_CREATE);
       assert(result == RL_SUCCESS);
     }
 

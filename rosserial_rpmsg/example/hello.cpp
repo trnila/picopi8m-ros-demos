@@ -7,6 +7,7 @@
 #include "task.h"
 #include "pin_mux.h"
 #include "clock_config.h"
+#include "rpmsg_rsc_table.h"
 #include "ros.h"
 #include <std_msgs/String.h>
 
