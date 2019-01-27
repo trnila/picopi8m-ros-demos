@@ -2,7 +2,7 @@
 
 import rospy
 from rosserial_python import SerialClient
-from serial import SerialException
+from serial import SerialException, SerialTimeoutException
 from time import sleep
 import os
 import sys
@@ -28,7 +28,10 @@ class M4charStream:
         return out
 
     def write(self, data):
-        return os.write(self.fd, data)
+        try:
+            return os.write(self.fd, data)
+        except Exception as e:
+            raise SerialTimeoutException(e)
 
     def inWaiting(self):
         return 1
