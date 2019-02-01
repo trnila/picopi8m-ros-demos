@@ -120,8 +120,8 @@ int main(int argc, char** argv) {
         fprintf(stderr, "missing address for --addr\n");
         exit(1);
       }
-      
-      start = atoi(argv[i++]);
+    
+      start = strtol(argv[++i], NULL, 16);
     }  else {
       fprintf(stderr, "Unknown parameter: %s\n", argv[i]);
       exit(1);
