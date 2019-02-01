@@ -110,11 +110,19 @@ void dump(uint64_t start, int dump_content) {
 
 int main(int argc, char** argv) {
   int dump_content = 1;
+  uint32_t start = START;
 
   for(int i = 1; i < argc; i++) {
     if(strcmp(argv[i], "--no-content") == 0) {
       dump_content = 0;
-    } else {
+    } else if(strcmp(argv[i], "--addr") == 0) {
+      if(i + 1 >= argc) {
+        fprintf(stderr, "missing address for --addr\n");
+        exit(1);
+      }
+      
+      start = atoi(argv[i++]);
+    }  else {
       fprintf(stderr, "Unknown parameter: %s\n", argv[i]);
       exit(1);
     }
@@ -126,10 +134,7 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  printf("RING 1\n");
-  dump(START, dump_content);
-  printf("RING 2\n");
-  dump(START + 0x8000, dump_content);
+  dump(start, dump_content);
 
   return 0;
 }
