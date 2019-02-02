@@ -10,34 +10,19 @@
 #include "task.h"
 #include "pin_mux.h"
 #include "clock_config.h"
-#include "fsl_uart.h"
-#include "rsc_table.h"
+#include "rsc_table_rpmsg.h"
 
 static char app_buf[512];
 
 void app_task(void *param) {
   int result;
-
-  struct remote_resource_table *table = get_resource_table (0, NULL);
-  printf("vring0 at: 0x%X, align: %d, num: %d\r\n", table->rpmsg_vring0.da, table->rpmsg_vring0.align, table->rpmsg_vring0.num);
-  printf("vring1 at: 0x%X, align: %d, num: %d\r\n", table->rpmsg_vring1.da, table->rpmsg_vring1.align, table->rpmsg_vring1.num);
-
-  struct rpmsg_lite_instance *my_rpmsg = rpmsg_lite_remote_init2(
-      (void*) table->rpmsg_vring0.da,
-      (void*) table->rpmsg_vring1.da,
-      table->rpmsg_vring0.align,
-      table->rpmsg_vring0.num,
-      RPMSG_LITE_LINK_ID,
-      RL_NO_FLAGS
-      );
-  my_rpmsg->link_state = 1;
+  struct rpmsg_lite_instance *my_rpmsg = create_rpmsg_from_resources();
 
   rpmsg_queue_handle my_queue = rpmsg_queue_create(my_rpmsg);
   struct rpmsg_lite_endpoint* my_ept = rpmsg_lite_create_ept(my_rpmsg, LOCAL_EPT_ADDR, rpmsg_queue_rx_cb, my_queue);
-  rpmsg_ns_bind(my_rpmsg, NULL, NULL);
   rpmsg_ns_announce(my_rpmsg, my_ept, RPMSG_CHANNEL, RL_NS_CREATE);
 
-  PRINTF("Waiting on channel " RPMSG_CHANNEL "\r\n");
+  printf("Announced channel " RPMSG_CHANNEL "\r\n");
   for (;;) {
     unsigned long remote_addr;
 
@@ -71,11 +56,10 @@ void app_task(void *param) {
 
 int main(void) {
   BOARD_RdcInit();
-
   BOARD_InitPins();
   BOARD_BootClockRUN();
   BOARD_InitDebugConsole();
-  BOARD_InitMemory();
+  BOARD_InitMemory();  
 
   if (xTaskCreate(app_task, "APP_TASK", 512, NULL, tskIDLE_PRIORITY + 1, NULL) != pdPASS) {
     printf("\r\nFailed to create application task\r\n");
