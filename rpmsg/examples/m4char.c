@@ -13,8 +13,18 @@ int main() {
         perror("open");
         exit(1);
     }
-
     char buffer[128];
+
+    if(fork() == 0) {
+        for(;;) {
+            int n = read(fd, buffer, sizeof(buffer));
+            if(n > 0) {
+                buffer[n] = 0;
+                printf("received: '%s'\n", buffer);
+            }
+        }
+    }
+
     int i = 0;
     for(;;) {
         snprintf(buffer, sizeof(buffer), "hello world %d", i++);
@@ -23,6 +33,6 @@ int main() {
                 break;
            }
         }
-        usleep(1000 * 100);
+        usleep(1000 * 50);
     }
 }
