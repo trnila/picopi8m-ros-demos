@@ -11,13 +11,14 @@ if [[ -z "$bin" ]]; then
   if [[ "$binaries" -eq 1 ]]; then
     bin="$(basename debug/*.bin)"
   else
-    echo Program name needed
+    echo Which m4 application to run?:
+    (cd debug && find . -name '*.bin' | xargs -I{} basename {} .bin | sed "s/^/  $ m4run /")
     exit 1
   fi
-else
-  bin="$bin.bin"
-  shift
 fi
 
-m4ctl load "debug/$bin" "$@"
-echo ok
+echo stop > /sys/kernel/debug/remoteproc/remoteproc0/state
+cp "debug/$bin" /lib/firmware/rproc-imx-rproc-fw
+echo start > /sys/kernel/debug/remoteproc/remoteproc0/state
+
+#m4ctl load "debug/$bin" "$@"
