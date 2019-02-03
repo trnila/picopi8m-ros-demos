@@ -4,7 +4,7 @@
 #include "rpmsg_lite.h"
 #include "rpmsg_queue.h"
 #include "rpmsg_ns.h"
-#include "rpmsg_rsc_table.h"
+#include "rsc_table_rpmsg.h"
 
 #ifndef RPMSG_CHANNEL
 //#define RPMSG_CHANNEL "rpmsg-virtual-tty-channel-1"

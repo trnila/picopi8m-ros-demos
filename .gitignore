@@ -1,6 +1,8 @@
 **/build/
 tools/m4ctl
 
+*.pyc
+
 *.o
 *.ko
 *.mod*

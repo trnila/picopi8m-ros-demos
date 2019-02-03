@@ -1,0 +1,3 @@
+gpio_char
+gpio_falling_edges
+sysfs_falling_edge
