@@ -26,8 +26,8 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-add_executable(m4ctl src/m4ctl.cpp src/m4core.cpp)
-target_link_libraries(m4ctl ${catkin_LIBRARIES})
+#add_executable(m4ctl src/m4ctl.cpp src/m4core.cpp)
+#target_link_libraries(m4ctl ${catkin_LIBRARIES})
 
 add_executable(hello src/hello.cpp)
 target_link_libraries(hello ${catkin_LIBRARIES})
