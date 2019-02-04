@@ -73,7 +73,7 @@ void app_task(void *param) {
       sigma = new_sigma;
     }
 
-    vTaskDelay(10);
+    vTaskDelay(1);
     t++;
   }
 }
