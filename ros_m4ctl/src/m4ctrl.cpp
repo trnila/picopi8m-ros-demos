@@ -2,8 +2,8 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include "ros/ros.h"
-#include "m4ctrl/Start.h"
-#include "m4ctrl/Stop.h"
+#include "ros_m4ctl/Start.h"
+#include "ros_m4ctl/Stop.h"
 
 template<typename...Args>
 bool m4ctl(Args... args) {
@@ -25,13 +25,13 @@ bool m4ctl(Args... args) {
 }
 
 
-bool start(m4ctrl::Start::Request &req, m4ctrl::Start::Response &res) {
+bool start(ros_m4ctl::Start::Request &req, ros_m4ctl::Start::Response &res) {
   ROS_INFO("Boot firmware '%s' requested", req.firmware_path.c_str());
   m4ctl("start", req.firmware_path.c_str());
   return true;
 }
 
-bool stop(m4ctrl::Stop::Request &req, m4ctrl::Stop::Response &res) {
+bool stop(ros_m4ctl::Stop::Request &req, ros_m4ctl::Stop::Response &res) {
   ROS_INFO("M4 stop requested");
   m4ctl("stop");
   return true;

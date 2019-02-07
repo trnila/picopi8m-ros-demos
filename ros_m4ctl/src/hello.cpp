@@ -7,17 +7,17 @@
 #include <unistd.h>
 #include <stdio.h>
 #include "ros/ros.h"
-#include "m4ctrl/Start.h"
-#include "m4ctrl/Stop.h"
+#include "ros_m4ctl/Start.h"
+#include "ros_m4ctl/Stop.h"
 
 int main(int argc, char **argv) {
   ros::init(argc, argv, "hello");
   ros::NodeHandle n;
 
   // boot firmware on m4core
-  m4ctrl::Start srv;
+  ros_m4ctl::Start srv;
   srv.request.firmware_path = "/ping.bin";
-  if(!n.serviceClient<m4ctrl::Start>("/m4ctrl/start").call(srv)) {
+  if(!n.serviceClient<ros_m4ctl::Start>("/ros_m4ctl/start").call(srv)) {
     ROS_ERROR("failed to start core");
     return 1;
   }
@@ -53,8 +53,8 @@ int main(int argc, char **argv) {
   }
 
   // stop core
-  m4ctrl::Stop stopSrv;
-  if(!n.serviceClient<m4ctrl::Stop>("/m4ctrl/stop").call(stopSrv)) {
+  ros_m4ctl::Stop stopSrv;
+  if(!n.serviceClient<ros_m4ctl::Stop>("/ros_m4ctl/stop").call(stopSrv)) {
     ROS_ERROR("failed to stop core");
     return 1;
   }
