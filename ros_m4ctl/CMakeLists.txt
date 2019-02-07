@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(m4ctrl)
+project(ros_m4ctl)
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
@@ -26,8 +26,8 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-#add_executable(m4ctl src/m4ctl.cpp src/m4core.cpp)
-#target_link_libraries(m4ctl ${catkin_LIBRARIES})
+add_executable(ros_m4ctl src/m4ctrl.cpp)
+target_link_libraries(ros_m4ctl ${catkin_LIBRARIES})
 
 add_executable(hello src/hello.cpp)
 target_link_libraries(hello ${catkin_LIBRARIES})
