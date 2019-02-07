@@ -17,8 +17,4 @@ if [[ -z "$bin" ]]; then
   fi
 fi
 
-echo stop > /sys/kernel/debug/remoteproc/remoteproc0/state
-cp "debug/$bin" /lib/firmware/rproc-imx-rproc-fw
-echo start > /sys/kernel/debug/remoteproc/remoteproc0/state
-
-#m4ctl load "debug/$bin" "$@"
+m4ctl start "debug/$bin"

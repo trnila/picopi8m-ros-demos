@@ -1,0 +1,17 @@
+#!/bin/sh
+
+if [ "$1" = "start" ]; then
+  if [ -n "$2" ]; then
+    echo stop > /sys/kernel/debug/remoteproc/remoteproc0/state
+    cp "$2" /lib/firmware/rproc-imx-rproc-fw
+  fi
+  echo start > /sys/kernel/debug/remoteproc/remoteproc0/state
+elif [ "$1" = "stop" ]; then
+  echo stop > /sys/kernel/debug/remoteproc/remoteproc0/state
+else
+  (
+  echo "usage: $(basename $0) start [path/firmware.elf]"
+  echo "       $(basename $0) stop"
+  ) 1>&2
+  exit 1
+fi
