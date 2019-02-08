@@ -1,3 +1,4 @@
+#include "main.h"
 #include <stdio.h>
 #include "board.h"
 #include "fsl_debug_console.h"
@@ -10,29 +11,15 @@
 #include "ros.h"
 #include "std_msgs/UInt16MultiArray.h"
 
-#define PRINT_OUTPUT 0
-#define CAMERA_POINTS 128
-
-#define SI_PORT GPIO4
-#define SI_PIN 23
-
-#define CLK_PORT GPIO4
-#define CLK_PIN 26
-
-
 ros::NodeHandle nh;
 
 uint16_t frame[CAMERA_POINTS];
 std_msgs::UInt16MultiArray container;
 ros::Publisher measurements("/linecam0", &container);
+struct Bag bag;
 
-void SI_set(int state) {
-    GPIO_PinWrite(SI_PORT, SI_PIN, state);
-}
+void measure_task(void*);
 
-void CLK_set(int state) {
-    GPIO_PinWrite(CLK_PORT, CLK_PIN, state);
-}
 
 void BOARD_InitPins(void) {
     IOMUXC_SetPinMux(IOMUXC_UART3_RXD_UART3_RX, 0U);
@@ -66,55 +53,22 @@ void BOARD_InitPins(void) {
             IOMUXC_SW_PAD_CTL_PAD_SRE(3U));
 }
 
-uint16_t adc_read(int chan) {
-    uint32_t rx = 0;
-    uint32_t tx = ((chan) & 0x7) << (3 + 8);
-    ecspi_transfer_t masterXfer;
-    masterXfer.txData = &tx;
-    masterXfer.rxData = &rx;
-    masterXfer.dataSize = 1;
-    masterXfer.channel = kECSPI_Channel0;
-    ECSPI_MasterTransferBlocking(ECSPI1, &masterXfer);
-    return rx;
-}
+void ros_task(void *param) {
+    struct Bag *bag = (struct Bag*) param;
 
-char to_color(uint16_t val) {
-    const char table[] = ".,;!vlLFE$";
-    return table[val / 409];
-}
-
-void app_task(void *param) {
     nh.initNode();
     nh.advertise(measurements);
 
-    container.data = frame;
-    container.data_length = CAMERA_POINTS;
-
-    TickType_t xLastWakeTime = xTaskGetTickCount();
+    container.data = bag->frame;
+    container.data_length = bag->frame_size;
 
     for(;;) {
-        CLK_set(0);
-        SI_set(1);
-        CLK_set(1);
-        SI_set(0);
-
-        for(int i = 0; i < CAMERA_POINTS; i++) {
-            CLK_set(0);
-            frame[i] = adc_read(0);
-            CLK_set(1);
-        }
-
-#if PRINT_OUTPUT
-        for(int i = 0; i < CAMERA_POINTS; i++) {
-            printf("%c", to_color(frame[i]));
-        }
-        printf("\r\n");
-#endif
-
+        xSemaphoreTake(bag->publish_semaphore, portMAX_DELAY);
+        line_print(frame);
         measurements.publish(&container);
         nh.spinOnce();
-
-        vTaskDelayUntil(&xLastWakeTime, 10);
+        
+        xSemaphoreGive(bag->measure_semaphore);
     }
 }
 
@@ -125,6 +79,7 @@ int main(void) {
     BOARD_InitDebugConsole();
     BOARD_InitMemory();
 
+    // setup SI and CLK pin as an output pin
     gpio_pin_config_t conf;
     conf.direction = kGPIO_DigitalOutput;
     conf.outputLogic = 0;
@@ -132,6 +87,7 @@ int main(void) {
     GPIO_PinInit(SI_PORT, SI_PIN, &conf);
     GPIO_PinInit(CLK_PORT, CLK_PIN, &conf);
 
+    // enable clocks for SPI and setup SPI parameters
     CLOCK_EnableClock(kCLOCK_Ecspi1);
     CLOCK_SetRootMux(kCLOCK_RootEcspi1, kCLOCK_EcspiRootmuxSysPll1); /* Set ECSPI2 source to SYSTEM PLL1 800MHZ */
     CLOCK_SetRootDivider(kCLOCK_RootEcspi1, 2U, 5U);                 /* Set root clock to 800MHZ / 10 = 80MHZ */
@@ -141,13 +97,29 @@ int main(void) {
     masterConfig.baudRate_Bps = 12000000U;
     masterConfig.burstLength = 16;
     masterConfig.channelConfig.clockInactiveState = kECSPI_ClockInactiveStateHigh;
-
     uint32_t clk = CLOCK_GetPllFreq(kCLOCK_SystemPll1Ctrl) / (CLOCK_GetRootPreDivider(kCLOCK_RootEcspi1)) / (CLOCK_GetRootPostDivider(kCLOCK_RootEcspi1));
     ECSPI_MasterInit(ECSPI1, &masterConfig, clk);
 
+    // prepare semaphores
+    bag.publish_semaphore = xSemaphoreCreateBinary();
+    assert(bag.publish_semaphore != NULL);
+    bag.measure_semaphore = xSemaphoreCreateBinary();
+    assert(bag.measure_semaphore != NULL);
 
-    if (xTaskCreate(app_task, "APP_TASK", 512, NULL, tskIDLE_PRIORITY + 1, NULL) != pdPASS) {
-        printf("\r\nFailed to create application task\r\n"); 
+    // increase measure semaphore so we will start with measure task
+    BaseType_t ret = xSemaphoreGive(bag.measure_semaphore);
+    assert(ret == pdTRUE);
+
+    bag.frame = frame;
+    bag.frame_size = CAMERA_POINTS; 
+
+    if (xTaskCreate(measure_task, "MEASURE_TASK", 512, &bag, tskIDLE_PRIORITY + 1, NULL) != pdPASS) {
+        printf("\r\nFailed to create measure task\r\n"); 
+        for(;;);
+    }
+
+    if (xTaskCreate(ros_task, "ROS_TASK", 512, &bag, tskIDLE_PRIORITY + 1, NULL) != pdPASS) {
+        printf("\r\nFailed to create ros task\r\n"); 
         for(;;);
     }
 
