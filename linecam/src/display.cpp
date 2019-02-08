@@ -18,7 +18,7 @@ void chatterCallback(const std_msgs::UInt16MultiArray::ConstPtr& msg) {
     // place incomming row
     int pixels = std::min(image.cols, (int) msg->data.size());
     for(int i = 0; i < pixels; i++) {
-        image.at<uint8_t>(image.rows - 1, i) = msg->data[i];
+        image.at<uint8_t>(image.rows - 1, i) = msg->data[i] * 255 / 4096;
     }
     cv::imshow(window_name, image);
     cv::waitKey(1);
