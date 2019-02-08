@@ -1,0 +1,5 @@
+<launch>
+  <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch"></include>
+  <node name="m4_loader" pkg="ros_m4ctl" type="m4ctl" args="start $(find linecam)/m4/build/debug/linecam_raw" />
+  <node name="rosserial_rpmsg" pkg="rosserial_rpmsg" type="serial_node.py" args="/dev/m4char" />
+</launch>

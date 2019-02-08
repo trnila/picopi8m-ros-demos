@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+  <style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    box-sizing:border-box
+  }
+
+  body {
+    height: 100vh;
+    padding: 10px;
+  }
+
+  body {
+    text-align: center;
+    overflow: hidden;
+  }
+
+  #container {
+    height: 100%;
+  }
+  </style>
+  </head>
+  <body>
+    <div id="container">
+      <canvas></canvas>
+    </div>
+
+    <script type="text/javascript" src="http://static.robotwebtools.org/EventEmitter2/current/eventemitter2.min.js"></script>
+    <script type="text/javascript" src="http://static.robotwebtools.org/roslibjs/current/roslib.min.js"></script>
+    <script type="text/javascript" type="text/javascript">
+      const defaults = {
+        'server': 'ws://picopi:9090',
+        'zoom': 1,
+        'row_pixels': 128,
+        'topic': '/linecam0'
+      }
+
+
+      let canvas = document.getElementsByTagName('canvas')[0]
+      let ctx = canvas.getContext('2d')
+
+      let settings = window.location.hash.substr(1).split('&').map(i => i.split('=')).reduce((all, [k, v]) => ({...all, [k]: v}), defaults)
+
+      canvas.width = settings['zoom'] * settings['row_pixels'];
+      canvas.height = parseInt(getComputedStyle(canvas.parentElement, null).getPropertyValue("height"))
+
+      var ros = new ROSLIB.Ros({
+        url: settings['server']
+      });
+
+      var listener = new ROSLIB.Topic({
+        ros : ros,
+        name : settings['topic'],
+        messageType : 'std_msgs/UInt16MultiArray'
+      });
+
+      listener.subscribe(function(message) {
+        let shift = ctx.getImageData(0, 1, canvas.width, canvas.height);
+        ctx.putImageData(shift, 0, 0)
+
+        let line = ctx.getImageData(0, canvas.height - 1, canvas.width, 1)
+        let out = 0;
+        for(let px = 0; px < message.data.length; px++) {
+          let gray = 255 - (message.data[px] / 4096 * 255);
+
+          for(let i = 0; i < settings['zoom']; i++) {
+            line.data[4*out +0] = gray;
+            line.data[4*out +1] = gray;
+            line.data[4*out +2] = gray;
+            line.data[4*out +3] = 255;
+            out++;
+          }
+
+        }
+        ctx.putImageData(line, 0, canvas.height - 1);
+      });
+
+    </script>
+  </body>
+</html>
