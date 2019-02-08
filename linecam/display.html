@@ -65,7 +65,7 @@
         let line = ctx.getImageData(0, canvas.height - 1, canvas.width, 1)
         let out = 0;
         for(let px = 0; px < message.data.length; px++) {
-          let gray = 255 - (message.data[px] / 4096 * 255);
+          let gray = message.data[px] / 4096 * 255;
 
           for(let i = 0; i < settings['zoom']; i++) {
             line.data[4*out +0] = gray;
