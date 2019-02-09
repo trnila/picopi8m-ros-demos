@@ -1,7 +1,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <uapi/linux/rpmsg.h>
+#include <linux/rpmsg.h>
 #include <string.h>
 #include <sys/ioctl.h>
 #include <unistd.h>

@@ -1,19 +1,19 @@
 LDFLAGS=-pthread
 
-all: module m4 run_m4 spam count_recv
+all: module m4 spam count_recv
 
 .PHONY: module m4 run_m4 clean
 
 module:
-	rmmod rpmsg_m4char.ko || true
 	make -C kernel_module
-	insmod kernel_module/rpmsg_m4char.ko
 
 m4:
 	cd m4 && m4build
 
-run_m4:
-	m4ctl load ./m4/build/debug/strupper.bin 
+run:
+	rmmod rpmsg_m4char.ko || true
+	insmod kernel_module/rpmsg_m4char.ko
+	m4ctl start ./m4/build/debug/strupper
 
 clean:
 	rm -f main
