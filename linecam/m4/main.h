@@ -3,8 +3,11 @@
 #include "fsl_gpio.h"
 #include "FreeRTOS.h"
 #include "semphr.h"
+#include <stdio.h>
 
+#ifndef PRINT_OUTPUT
 #define PRINT_OUTPUT 0
+#endif
 #define CAMERA_POINTS 128
 
 #define SI_PORT GPIO4
@@ -34,7 +37,7 @@ inline char to_color(uint16_t val) {
 }
 
 inline void line_print(uint16_t* frame) {
-#if PRINT_OUTPUT
+#if PRINT_OUTPUT 
         for(int i = 0; i < CAMERA_POINTS; i++) {
             printf("%c", to_color(frame[i]));
         }

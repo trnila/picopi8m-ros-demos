@@ -16,3 +16,8 @@ target_link_libraries(linecam_irq mcuxpressosdk freertos rpmsg_lite)
 
 add_firmware(linecam_raw main.cpp raw.cpp ros_lib/time.cpp) 
 target_link_libraries(linecam_raw mcuxpressosdk freertos rpmsg_lite)
+
+
+add_firmware(linecam_debug main.cpp simple.cpp ros_lib/time.cpp) 
+target_link_libraries(linecam_debug mcuxpressosdk freertos rpmsg_lite)
+target_compile_definitions(linecam_debug PRIVATE PRINT_OUTPUT=1) 
