@@ -1,13 +1,19 @@
 #!/bin/sh
 
+state=/sys/devices/platform/imx8m-cm4/remoteproc/remoteproc0/state
+if [ ! -f "$state" ]; then
+  state=/sys/kernel/debug/remoteproc/remoteproc0/state
+fi
+
+
 if [ "$1" = "start" ]; then
   if [ -n "$2" ]; then
-    echo stop > /sys/kernel/debug/remoteproc/remoteproc0/state
+    echo stop > "$state"
     cp "$2" /lib/firmware/rproc-imx-rproc-fw
   fi
-  echo start > /sys/kernel/debug/remoteproc/remoteproc0/state
+  echo start > "$state"
 elif [ "$1" = "stop" ]; then
-  echo stop > /sys/kernel/debug/remoteproc/remoteproc0/state
+  echo stop > "$state"
 else
   (
   echo "usage: $(basename $0) start [path/firmware.elf]"
