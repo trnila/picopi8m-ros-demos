@@ -14,3 +14,6 @@ target_link_libraries(gpio_input mcuxpressosdk)
 
 add_firmware(gpio_irq gpio_irq.c) 
 target_link_libraries(gpio_irq mcuxpressosdk)
+
+add_firmware(gpio_flip gpio_flip.c) 
+target_link_libraries(gpio_flip mcuxpressosdk)
