@@ -22,6 +22,23 @@ $ rosrun linecam display
 Another example may be `rosbridge_websocket`, that can bridge ros functionality with websocket, so it's possible to visualize measured data directly on web page as in *display.html* example.
 Open it in your browser and optionally set some settings via URL fragment - *#server=picopi&zoom=1&topic=/linecam0*.
 
+# linux /linecam0 publisher
+In *src/linecam_linux.cpp* is userspace variant that is not capable of faster responses.
+It tooks about 200 us between SPI transfers, but M4 is able to respond in 1.2 us.
+
+![m4 timings](captures/linecam_raw.png)
+![m4 timings](captures/linecam_raw_total.png)
+![linux timings](captures/linecam_linux.png)
+
+Make sure you have booted with DTB *pico-8m-linecam.dtb* and have spidev module loaded, otherwise this example won't work.
+Then you can run this example with `rosrun linecam linecam_linux`.
+
+To archieve better response time, you can isolate fist core (to which most peripheral interrupts goes) from scheduler and then assign this process to this core.
+Response time between SPI transfers will shorten from about 200 us to 45 us.
+Boot with kernel parameter *isolcpus=0* and then assign process to that core with `taskset 1 rosrun linecam linecam_linux`.
+
+![linux with isolated core timings](captures/linecam_linux_isolcpus.png)
+
 ## Ros recordings
 Data on ros topics can be recorded and used for later debugging.
 To recored data just run:
