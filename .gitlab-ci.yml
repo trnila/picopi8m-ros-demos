@@ -1,0 +1,40 @@
+build_m4:
+  image: ubuntu:18.10
+  stage: test
+  script:
+    - apt-get update
+    - apt-get install -y gcc-arm-none-eabi wget git make cmake
+    - wget http://mirrors.kernel.org/ubuntu/pool/universe/n/newlib/libnewlib-dev_3.0.0.20180802-2_all.deb
+    - wget http://mirrors.kernel.org/ubuntu/pool/universe/n/newlib/libnewlib-arm-none-eabi_3.0.0.20180802-2_all.deb 
+    - dpkg -i *.deb
+    - git clone https://github.com/trnila/picopi-m4sdk /opt/freertos-tn
+    - source tools/setup.bash
+    - find . -name CMakeLists.txt | while read r; do (cd $(dirname $r); if grep mcuxpresso CMakeLists.txt; then m4build; fi ) || exit ; done
+
+build_on_target:
+  image: ubuntu:18.10
+  stage: test
+  script:
+    - apt-get update
+    - apt install -y curl xz-utils binfmt-support qemu-user-static 
+    - cd ..
+    - mkdir -p rootfs/build
+    - (cd rootfs && curl -L https://gitlab.com/trnila/picopi8m-ros-distbuild/-/jobs/artifacts/master/raw/picopi-ros.rootfs.tar.xz?job=build | tar -xJ)
+    - mv $CI_PROJECT_DIR/ rootfs/build/src
+    - |
+      chroot rootfs /bin/bash <<'SCRIPT'
+        set -ex;
+        ln -s /lib/modules/* /lib/modules/$(uname -r)
+        cd /build;
+        source /opt/ros/melodic/setup.bash
+        source src/tools/setup.bash
+
+        apt update
+        rosdep init || true
+        rosdep update
+        rosdep install --from-paths src --ignore-src -r -y
+
+        find . -name Makefile | while read r; do echo $r; make -C $(dirname "$r") || exit; done
+        find . -name CMakeLists.txt | while read r; do echo $r; (cd $(dirname $r); if grep mcuxpresso CMakeLists.txt; then m4build; fi ) || exit ; done
+        catkin_make --make-args -j1
+      SCRIPT
