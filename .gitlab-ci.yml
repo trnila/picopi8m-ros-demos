@@ -20,7 +20,7 @@ build_on_target:
     - cd ..
     - mkdir -p rootfs/build
     - (cd rootfs && curl -L https://gitlab.com/trnila/picopi8m-ros-distbuild/-/jobs/artifacts/master/raw/picopi-ros.rootfs.tar.xz?job=build | tar -xJ)
-    - mv $CI_PROJECT_DIR/ rootfs/build/src
+    - cp -r $CI_PROJECT_DIR/ rootfs/build/src
     - |
       chroot rootfs /bin/bash <<'SCRIPT'
         set -ex;
