@@ -9,7 +9,10 @@ fi
 if [ "$1" = "start" ]; then
   if [ -n "$2" ]; then
     echo stop > "$state"
-    cp "$2" /lib/firmware/rproc-imx-rproc-fw
+    if ! cp "$2" /lib/firmware/rproc-imx-rproc-fw; then
+      echo "Failed to copy firmware" 1>&2
+      exit 1
+    fi
   fi
   echo start > "$state"
 elif [ "$1" = "stop" ]; then
