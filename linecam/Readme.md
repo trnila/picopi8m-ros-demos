@@ -35,9 +35,25 @@ Then you can run this example with `rosrun linecam linecam_linux`.
 
 To archieve better response time, you can isolate fist core (to which most peripheral interrupts goes) from scheduler and then assign this process to this core.
 Response time between SPI transfers will shorten from about 200 us to 45 us.
-Boot with kernel parameter *isolcpus=0* and then assign process to that core with `taskset 1 rosrun linecam linecam_linux`.
+Boot with kernel parameter *isolcpus=0* and then assign process to that core with `taskset 1 nice -n-20 chrt --rr 99 rosrun linecam linecam_linux`.
 
 ![linux with isolated core timings](captures/linecam_linux_isolcpus.png)
+
+# kernel /linecam0 publisher
+Driver linecam in *kernel_module* is able to make measurement in about 10 ms.
+When is that task isolated on core 0, it is able to shorten time to 4 ms, but still there are sometimes 143 us gaps - even with `taskset 1 nice -n-20 chrt --rr 99`.
+
+![linux with isolated core timings](captures/linecam_kernel_isolcpus.png)
+
+Boot with *pico-8m-linecam-kernel.dtb* and optionally *isolcpus=0*.
+Make sure you dont have spidev driver loaded.
+Build kernel module, load it and start userspace application:
+```sh
+$ cd kernel_module
+$ make
+$ insmod ./linecam.ko
+$ taskset 1 nice -n-20 chrt --rr 99 rosrun linecam linecam_kernel
+```
 
 ## Ros recordings
 Data on ros topics can be recorded and used for later debugging.

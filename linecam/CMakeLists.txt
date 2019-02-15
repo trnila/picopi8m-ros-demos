@@ -26,3 +26,5 @@ target_link_libraries(display ${catkin_LIBRARIES} ${OpenCV_LIBS})
 add_executable(linecam_linux src/linecam_linux.cpp)
 target_link_libraries(linecam_linux ${catkin_LIBRARIES})
 
+add_executable(linecam_kernel src/linecam_kernel.cpp)
+target_link_libraries(linecam_kernel ${catkin_LIBRARIES})
