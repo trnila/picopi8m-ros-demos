@@ -58,15 +58,14 @@ int main(void) {
     uint32_t clk = CLOCK_GetPllFreq(kCLOCK_SystemPll1Ctrl) / (CLOCK_GetRootPreDivider(kCLOCK_RootUart4)) / (CLOCK_GetRootPostDivider(kCLOCK_RootUart4)) / 10 /* div10 */;
     UART_Init(UART4, &config, clk);
 
-    uint8_t tx[] = "Started, now type some characters\r\n";
-    UART_WriteBlocking(UART4, tx, sizeof(tx) - 1);
-
     UART_EnableInterrupts(UART4, kUART_RxDataReadyEnable);
     EnableIRQ(UART4_IRQn);
 
     for(;;) {
       if(head != tail) {
-        printf("got: '%c'\r\n", ring[head]);
+        uint8_t c = ring[head];
+        printf("got: '%c'\r\n", c);
+        UART_WriteBlocking(UART4, &c, 1);
         head = (head + 1) & (RING_SIZE - 1);
       }
     }
