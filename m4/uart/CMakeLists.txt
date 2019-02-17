@@ -17,3 +17,6 @@ target_link_libraries(uart4 mcuxpressosdk)
 
 add_firmware(uart4_irq uart4_irq.c) 
 target_link_libraries(uart4_irq mcuxpressosdk)
+
+add_firmware(uart4_readline uart4_readline.c) 
+target_link_libraries(uart4_readline mcuxpressosdk freertos)
