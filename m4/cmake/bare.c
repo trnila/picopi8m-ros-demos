@@ -10,6 +10,6 @@ int main(void) {
     BOARD_InitDebugConsole();
     BOARD_InitMemory();
 
-    printf("Hello worldr\r\n");
+    printf("Hello world\r\n");
     for(;;);
 }
