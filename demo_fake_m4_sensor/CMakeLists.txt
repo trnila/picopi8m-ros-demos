@@ -5,6 +5,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp 
   std_msgs
   message_generation
+  genmsg
 )
 
 add_message_files(FILES Location.msg)
@@ -24,3 +25,4 @@ include_directories(${catkin_INCLUDE_DIRS})
 
 add_executable(bridge src/bridge.cpp)
 target_link_libraries(bridge ${catkin_LIBRARIES})
+add_dependencies(bridge demo_fake_m4_sensor_generate_messages_cpp)

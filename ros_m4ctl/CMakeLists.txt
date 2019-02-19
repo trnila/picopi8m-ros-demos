@@ -28,6 +28,8 @@ include_directories(
 
 add_executable(ros_m4ctl src/m4ctrl.cpp)
 target_link_libraries(ros_m4ctl ${catkin_LIBRARIES})
+add_dependencies(ros_m4ctl ros_m4ctl_generate_messages_cpp)
 
 add_executable(hello src/hello.cpp)
 target_link_libraries(hello ${catkin_LIBRARIES})
+add_dependencies(hello ros_m4ctl_generate_messages_cpp)
