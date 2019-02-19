@@ -33,7 +33,7 @@ void BOARD_InitPins(void) {
     IOMUXC_SetPinMux(IOMUXC_ECSPI1_MISO_ECSPI1_MISO, 0U);
     IOMUXC_SetPinMux(IOMUXC_ECSPI1_MOSI_ECSPI1_MOSI, 0U);
     IOMUXC_SetPinMux(IOMUXC_ECSPI1_SCLK_ECSPI1_SCLK, 0U);
-    IOMUXC_SetPinMux(IOMUXC_ECSPI1_SS0_GPIO5_IO9, 0U); // we are using GPIO for chip select (cs) instead of hw cs
+    IOMUXC_SetPinMux(IOMUXC_ECSPI1_SS0_GPIO5_IO09, 0U); // we are using GPIO for chip select (cs) instead of hw cs
 }
 
 // this example sends first 16 letters on MOSI and then checks if they were received on MISO,
