@@ -9,7 +9,7 @@ bin=$1
 binaries="$(ls debug/*.bin | wc -l)"
 if [[ -z "$bin" ]]; then
   if [[ "$binaries" -eq 1 ]]; then
-    bin="$(basename debug/*.bin)"
+    bin="$(basename debug/*.bin .bin)"
   else
     echo Which m4 application to run?:
     (cd debug && find . -name '*.bin' | xargs -I{} basename {} .bin | sed "s/^/  $ m4run /")
