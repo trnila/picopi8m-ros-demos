@@ -11,22 +11,13 @@
 #include "pin_mux.h"
 #include "clock_config.h"
 #include "fsl_uart.h"
+#include "rsc_table_rpmsg.h"
 
-#define RPMSG_LITE_SHMEM_BASE (0xB8000000U)
 #define RPMSG_LITE_NS_ANNOUNCE_STRING "udp"
 
-#ifndef LOCAL_EPT_ADDR
-#define LOCAL_EPT_ADDR (30)
-#endif
-
 void app_task(void *param) {
-    struct rpmsg_lite_endpoint *my_ept;
-    struct rpmsg_lite_instance *my_rpmsg;
-
-    my_rpmsg = rpmsg_lite_remote_init((void *)RPMSG_LITE_SHMEM_BASE, RPMSG_LITE_LINK_ID, RL_NO_FLAGS);
-    my_rpmsg->link_state = 1;
-
-    my_ept = rpmsg_lite_create_ept(my_rpmsg, LOCAL_EPT_ADDR, rpmsg_queue_rx_cb, NULL);
+    struct rpmsg_lite_instance *my_rpmsg = create_rpmsg_from_resources();
+    struct rpmsg_lite_endpoint *my_ept = rpmsg_lite_create_ept(my_rpmsg, LOCAL_EPT_ADDR, rpmsg_queue_rx_cb, NULL);
     rpmsg_ns_announce(my_rpmsg, my_ept, RPMSG_LITE_NS_ANNOUNCE_STRING, RL_NS_CREATE);
 
     int  i = 0;
@@ -49,8 +40,6 @@ void app_task(void *param) {
 
 int main(void) {
     BOARD_RdcInit();
-    
-    BOARD_InitPins();
     BOARD_BootClockRUN();
     BOARD_InitDebugConsole();
     BOARD_InitMemory();
