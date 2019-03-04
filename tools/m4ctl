@@ -5,18 +5,29 @@ if [ ! -f "$state" ]; then
   state=/sys/kernel/debug/remoteproc/remoteproc0/state
 fi
 
+stop() {
+  if grep -q running "$state"; then
+    echo stop > "$state"
+  fi
+}
+
+start() {
+  if grep -q offline "$state"; then
+    echo start > "$state"
+  fi
+}
 
 if [ "$1" = "start" ]; then
   if [ -n "$2" ]; then
-    echo stop > "$state"
+    stop
     if ! cp "$2" /lib/firmware/rproc-imx-rproc-fw; then
       echo "Failed to copy firmware" 1>&2
       exit 1
     fi
   fi
-  echo start > "$state"
+  start
 elif [ "$1" = "stop" ]; then
-  echo stop > "$state"
+  stop
 else
   (
   echo "usage: $(basename $0) start [path/firmware.elf]"
