@@ -21,6 +21,8 @@ int main() {
             if(n > 0) {
                 buffer[n] = 0;
                 printf("received: '%s'\n", buffer);
+            } else if(errno == EPIPE) {
+                usleep(1000 * 100);
             }
         }
     }
@@ -29,10 +31,9 @@ int main() {
     for(;;) {
         snprintf(buffer, sizeof(buffer), "hello world %d", i++);
         if(write(fd, buffer, strlen(buffer)) < 0) {
-           if(errno == EIO) {
-                break;
+           if(errno == EPIPE || errno == ENOMEM) {
+                usleep(1000 * 100);
            }
         }
-        usleep(1000 * 50);
     }
 }

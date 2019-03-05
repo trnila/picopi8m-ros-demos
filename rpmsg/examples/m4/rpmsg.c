@@ -35,17 +35,21 @@ void app_task(void *param) {
     memcpy(app_buf, rx_buf, rx_len);
     app_buf[rx_len] = 0;
 
-    printf("received: \"%s\" [len : %d]\r\n", app_buf, rx_len);
+    printf("received: \"%.*s\" [len : %d]\r\n", rx_len, app_buf, rx_len);
 
     /* Get tx buffer from RPMsg */
     unsigned long tx_len;
     char* tx_buf = rpmsg_lite_alloc_tx_buffer(my_rpmsg, &tx_len, RL_BLOCK);
     assert(tx_buf);
-    /* Copy string to RPMsg tx buffer */
-    memcpy(tx_buf, app_buf, tx_len);
+    assert(rx_len <= tx_len);
+
+    /* strupper */
+    for(int i = 0; i < rx_len; i++) {
+      tx_buf[i] = toupper(app_buf[i]);
+    }
 
     /* Echo back received message with nocopy send */
-    result = rpmsg_lite_send_nocopy(my_rpmsg, my_ept, remote_addr, tx_buf, tx_len);
+    result = rpmsg_lite_send_nocopy(my_rpmsg, my_ept, remote_addr, tx_buf, rx_len);
     assert(result == RL_SUCCESS);
 
     /* Release held RPMsg rx buffer */
@@ -56,7 +60,6 @@ void app_task(void *param) {
 
 int main(void) {
   BOARD_RdcInit();
-  BOARD_InitPins();
   BOARD_BootClockRUN();
   BOARD_InitDebugConsole();
   BOARD_InitMemory();  
