@@ -80,7 +80,6 @@ void app_task(void *param) {
 
 int main() {
   BOARD_RdcInit();
-  BOARD_InitPins();
   BOARD_BootClockRUN();
   BOARD_InitDebugConsole();
   BOARD_InitMemory();

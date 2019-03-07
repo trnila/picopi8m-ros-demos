@@ -14,17 +14,6 @@ uint32_t tx[SIZE];
 uint32_t rx[SIZE];
 
 void BOARD_InitPins(void) {
-    IOMUXC_SetPinMux(IOMUXC_UART3_RXD_UART3_RX, 0U);
-    IOMUXC_SetPinConfig(IOMUXC_UART3_RXD_UART3_RX, 
-                        IOMUXC_SW_PAD_CTL_PAD_DSE(6U) |
-                        IOMUXC_SW_PAD_CTL_PAD_SRE(1U) |
-                        IOMUXC_SW_PAD_CTL_PAD_PUE_MASK);
-    IOMUXC_SetPinMux(IOMUXC_UART3_TXD_UART3_TX, 0U);
-    IOMUXC_SetPinConfig(IOMUXC_UART3_TXD_UART3_TX, 
-                        IOMUXC_SW_PAD_CTL_PAD_DSE(6U) |
-                        IOMUXC_SW_PAD_CTL_PAD_SRE(1U) |
-                        IOMUXC_SW_PAD_CTL_PAD_PUE_MASK);
-
     // SPI alternate function
     // ECSPI1_MOSI        - GPIO5_IO07
     // ECSPI1_MISO        - GPIO5_IO08

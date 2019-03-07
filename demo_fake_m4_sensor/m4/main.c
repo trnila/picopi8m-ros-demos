@@ -30,19 +30,6 @@ struct rpmsg_lite_instance *volatile my_rpmsg;
 
 volatile float sigma = 0.2;
 
-void BOARD_InitPins(void) {
-    IOMUXC_SetPinMux(IOMUXC_UART3_RXD_UART3_RX, 0U);
-    IOMUXC_SetPinConfig(IOMUXC_UART3_RXD_UART3_RX, 
-                        IOMUXC_SW_PAD_CTL_PAD_DSE(6U) |
-                        IOMUXC_SW_PAD_CTL_PAD_SRE(1U) |
-                        IOMUXC_SW_PAD_CTL_PAD_PUE_MASK);
-    IOMUXC_SetPinMux(IOMUXC_UART3_TXD_UART3_TX, 0U);
-    IOMUXC_SetPinConfig(IOMUXC_UART3_TXD_UART3_TX, 
-                        IOMUXC_SW_PAD_CTL_PAD_DSE(6U) |
-                        IOMUXC_SW_PAD_CTL_PAD_SRE(1U) |
-                        IOMUXC_SW_PAD_CTL_PAD_PUE_MASK);
-}
-
 float gaussrand() {
   const int nsum = 25;
 
@@ -133,7 +120,6 @@ void app_task(void *param) {
 
 int main(void) {
     BOARD_RdcInit();
-    BOARD_InitPins();
     BOARD_BootClockRUN();
     BOARD_InitDebugConsole();
     BOARD_InitMemory();

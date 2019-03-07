@@ -8,17 +8,6 @@
 #include "clock_config.h"
 
 void BOARD_InitPins(void) {
-    IOMUXC_SetPinMux(IOMUXC_UART3_RXD_UART3_RX, 0U);
-    IOMUXC_SetPinConfig(IOMUXC_UART3_RXD_UART3_RX, 
-                        IOMUXC_SW_PAD_CTL_PAD_DSE(6U) |
-                        IOMUXC_SW_PAD_CTL_PAD_SRE(1U) |
-                        IOMUXC_SW_PAD_CTL_PAD_PUE_MASK);
-    IOMUXC_SetPinMux(IOMUXC_UART3_TXD_UART3_TX, 0U);
-    IOMUXC_SetPinConfig(IOMUXC_UART3_TXD_UART3_TX, 
-                        IOMUXC_SW_PAD_CTL_PAD_DSE(6U) |
-                        IOMUXC_SW_PAD_CTL_PAD_SRE(1U) |
-                        IOMUXC_SW_PAD_CTL_PAD_PUE_MASK);
-
     // set UART4 alternate function for GPIO5_IO11 and GPIO5_IO10
     IOMUXC_SetPinMux(IOMUXC_ECSPI2_MOSI_UART4_TX, 0U);
     IOMUXC_SetPinMux(IOMUXC_ECSPI2_SCLK_UART4_RX, 0U);

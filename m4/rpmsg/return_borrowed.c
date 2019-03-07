@@ -123,7 +123,6 @@ uint16_t get_tx_buffer() {
 
 int main(void) {
     BOARD_RdcInit();
-    BOARD_InitPins();
     BOARD_BootClockRUN();
     BOARD_InitDebugConsole();
     BOARD_InitMemory();

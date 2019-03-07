@@ -7,11 +7,11 @@ find_package(rpmsg REQUIRED)
 
 include_directories(.)
 
-add_firmware(bare bare.c pin_mux.c) 
+add_firmware(bare bare.c) 
 target_link_libraries(bare mcuxpressosdk)
 
-add_firmware(rtos rtos.c pin_mux.c) 
+add_firmware(rtos rtos.c) 
 target_link_libraries(rtos mcuxpressosdk freertos)
 
-add_firmware(rpmsg rpmsg.c pin_mux.c) 
+add_firmware(rpmsg rpmsg.c) 
 target_link_libraries(rpmsg mcuxpressosdk freertos rpmsg_lite)

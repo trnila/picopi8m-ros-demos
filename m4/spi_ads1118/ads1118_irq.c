@@ -36,17 +36,6 @@ volatile uint32_t tick;
 
 
 void BOARD_InitPins(void) {
-    IOMUXC_SetPinMux(IOMUXC_UART3_RXD_UART3_RX, 0U);
-    IOMUXC_SetPinConfig(IOMUXC_UART3_RXD_UART3_RX, 
-            IOMUXC_SW_PAD_CTL_PAD_DSE(6U) |
-            IOMUXC_SW_PAD_CTL_PAD_SRE(1U) |
-            IOMUXC_SW_PAD_CTL_PAD_PUE_MASK);
-    IOMUXC_SetPinMux(IOMUXC_UART3_TXD_UART3_TX, 0U);
-    IOMUXC_SetPinConfig(IOMUXC_UART3_TXD_UART3_TX, 
-            IOMUXC_SW_PAD_CTL_PAD_DSE(6U) |
-            IOMUXC_SW_PAD_CTL_PAD_SRE(1U) |
-            IOMUXC_SW_PAD_CTL_PAD_PUE_MASK);
-
     // ECSPI1 alternate function
     IOMUXC_SetPinMux(IOMUXC_ECSPI1_MISO_ECSPI1_MISO, 1U);
     IOMUXC_SetPinConfig(IOMUXC_ECSPI1_MISO_ECSPI1_MISO, 

@@ -7,5 +7,5 @@ find_package(rpmsg REQUIRED)
 
 include_directories(.)
 
-add_firmware(return_borrowed return_borrowed.c pin_mux.c) 
+add_firmware(return_borrowed return_borrowed.c) 
 target_link_libraries(return_borrowed mcuxpressosdk)

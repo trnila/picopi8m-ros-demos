@@ -11,18 +11,6 @@
 #define DS1621_ADDR          0x48
 
 void BOARD_InitPins(void) {
-    IOMUXC_SetPinMux(IOMUXC_UART3_RXD_UART3_RX, 0U);
-    IOMUXC_SetPinConfig(IOMUXC_UART3_RXD_UART3_RX,
-                        IOMUXC_SW_PAD_CTL_PAD_DSE(6U) |
-                        IOMUXC_SW_PAD_CTL_PAD_SRE(1U) |
-                        IOMUXC_SW_PAD_CTL_PAD_PUE_MASK);
-    IOMUXC_SetPinMux(IOMUXC_UART3_TXD_UART3_TX, 0U);
-    IOMUXC_SetPinConfig(IOMUXC_UART3_TXD_UART3_TX,
-                        IOMUXC_SW_PAD_CTL_PAD_DSE(6U) |
-                        IOMUXC_SW_PAD_CTL_PAD_SRE(1U) |
-                        IOMUXC_SW_PAD_CTL_PAD_PUE_MASK);
-
-
    // set alternate function I2C3 
    IOMUXC_SetPinMux(IOMUXC_I2C3_SCL_I2C3_SCL, 1U); // SION bit (1) IS NEEDED, so I2C can receive input on the pin
    IOMUXC_SetPinConfig(IOMUXC_I2C3_SCL_I2C3_SCL, 
