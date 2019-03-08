@@ -43,7 +43,6 @@ int main(void) {
     uint32_t clk = CLOCK_GetPllFreq(kCLOCK_SystemPll1Ctrl) / (CLOCK_GetRootPreDivider(kCLOCK_RootEcspi1)) / (CLOCK_GetRootPostDivider(kCLOCK_RootEcspi1));
 
     ECSPI_MasterInit(ECSPI1, &masterConfig, clk);
-    for(;;);
 
     for(;;) {
         for(int chan = 0; chan < 8; chan++) {
