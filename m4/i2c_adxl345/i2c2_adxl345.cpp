@@ -92,38 +92,36 @@ void measure_task(void*) {
 
   NVIC_SetPriority(I2C2_IRQn, 2);
 
+  i2c_write(&i2c, ADXL345_POWER_CTL, 0);
+  i2c_write(&i2c, ADXL345_POWER_CTL, 16);
+  i2c_write(&i2c, ADXL345_POWER_CTL, 8);
+
+  uint16_t data_format = i2c_read_byte(&i2c, ADXL345_DATA_FORMAT);
+  uint16_t g_range = pow(2, (data_format & 0x3) + 1);
+  uint16_t resolution = (data_format & (1 << 3)) ? 16 : 10;
+  float scale = pow(2, resolution - 1);
+
+  printf("DATA_FORMAT = %x\r\n", data_format);
+  printf("grange = +- %d\r\n", g_range);
+  printf("resolution = %dbits, scale = %f\r\n", resolution, scale);
+
   for(;;) {
-    i2c_write(&i2c, ADXL345_POWER_CTL, 0);
-    i2c_write(&i2c, ADXL345_POWER_CTL, 16);
-    i2c_write(&i2c, ADXL345_POWER_CTL, 8);
+    uint8_t data[6];
+    i2c_read(&i2c, ADXL345_DATAX0, data, sizeof(data));
 
-    uint16_t data_format = i2c_read_byte(&i2c, ADXL345_DATA_FORMAT);
-    uint16_t g_range = pow(2, (data_format & 0x3) + 1);
-    uint16_t resolution = (data_format & (1 << 3)) ? 16 : 10;
-    float scale = pow(2, resolution - 1);
+    int16_t x = (((int) data[1]) << 8) | data[0];
+    int16_t y = (((int) data[3]) << 8) | data[2];
+    int16_t z = (((int) data[5]) << 8) | data[4];
 
-    printf("DATA_FORMAT = %x\r\n", data_format);
-    printf("grange = +- %d\r\n", g_range);
-    printf("resolution = %dbits, scale = %f\r\n", resolution, scale);
+    float g = 9.81;
+    printf(
+        "%6.3f %6.3f %6.3f\r\n",
+        g_range * x * g / scale,
+        g_range * y * g / scale,
+        g_range * z * g / scale
+    );
 
-    for(;;) {
-      uint8_t data[6];
-      i2c_read(&i2c, ADXL345_DATAX0, data, sizeof(data));
-
-      int16_t x = (((int) data[1]) << 8) | data[0];
-      int16_t y = (((int) data[3]) << 8) | data[2];
-      int16_t z = (((int) data[5]) << 8) | data[4];
-
-      float g = 9.81;
-      printf(
-          "%6.3f %6.3f %6.3f\r\n",
-          g_range * x * g / scale,
-          g_range * y * g / scale,
-          g_range * z * g / scale
-      );
-
-      vTaskDelay(50);
-    }
+    vTaskDelay(50);
   }
 }
 
