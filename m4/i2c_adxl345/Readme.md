@@ -7,6 +7,6 @@
 |         3V3         |    CS   |
 |                     |   INT1  |
 |                     |   INT2  |
-|         GND         |   SD0   |
+|         GND         |   SDO   |
 | I2C2_SDA/GPIO5_IO17 |   SDA   |
 | I2C2_SCL/GPIO5_IO16 |   SCL   |
