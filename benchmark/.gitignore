@@ -1,3 +1,4 @@
 measurements
-rpmsg_char
-tty
+bench_tty
+bench_m4char
+load_raw

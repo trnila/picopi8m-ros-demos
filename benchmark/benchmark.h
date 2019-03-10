@@ -1,5 +1,8 @@
 #include <time.h>
 #include <stdint.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 static uint64_t timespec_diff_ns(struct timespec *t1, struct timespec *t2) {
 	struct timespec diff;
@@ -24,4 +27,33 @@ uint64_t benchmark_stop() {
   clock_gettime(CLOCK_MONOTONIC, &end);
 
   return timespec_diff_ns(&start, &end);
+}
+
+void do_benchmark(int fd, int total) {
+  uint64_t *times = new uint64_t[total];
+  int ping = 0;
+  while(ping < total) {
+    benchmark_start();
+    if(write(fd, &ping, sizeof(ping)) <= 0) {
+      perror("write");
+      exit(1);
+    }
+
+    int got = -1;
+    if(read(fd, &got, sizeof(got)) <= 0) {
+      perror("read");
+      exit(1);
+    }
+
+    times[ping] = benchmark_stop();
+
+    ping++;
+    if(ping != got) {
+      printf("error got %d, expected %d\n", got, ping);
+      exit(1);
+    }
+  }
+  for(int i = 0; i < total; i++) { 
+    printf("%lu\n", times[i]);
+  }
 }

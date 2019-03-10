@@ -1,6 +1,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <linux/rpmsg.h>
 #include <string.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
@@ -35,7 +36,25 @@ int main(int argc, char **argv) {
     return -1;
   }
 
-  do_benchmark(fd, total);
+  ping = 0;
+  while(ping < total) {
+    benchmark_start();
+    if(write(fd, &ping, sizeof(ping)) <= 0) {
+      perror("write");
+      return -1;
+    }
 
-  return 0;
+    if(read(fd, &got, sizeof(got)) <= 0) {
+      perror("read");
+      return -1;
+    }
+
+    printf("%llu\n", benchmark_stop());
+
+    ping++;
+    if(ping != got) {
+      printf("error got %d, expected %d\n", got, ping);
+      return 1;
+    }
+  }
 }

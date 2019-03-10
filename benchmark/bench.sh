@@ -1,54 +1,36 @@
 #!/bin/bash
 set -e
 
-unload_modules() {
-	rmmod ping_bench || true
-	rmmod mu_bench || true
-	rmmod imx_rpmsg_tty || true
-	rmmod rpmsg_char || true
-	rmmod imx_rpmsg || true
-}
+TOTAL=10000
 
+#make
 rm -rf ./measurements
 mkdir measurements
 
-make
+## Benchmark MU
+# unload imx8m-cm4 remoteproc device
+echo "Benchmarking MU..."
+echo imx8m-cm4 > /sys/bus/platform/drivers/imx-rproc/unbind || true
+rmmod mu_bench || true
+insmod kernel_module/mu_bench.ko
+./load_raw ./m4/build/debug/mu.bin
+cat /proc/mu_bench > measurements/mu
+rmmod mu_bench
+echo imx8m-cm4 > /sys/bus/platform/drivers/imx-rproc/bind
 
-# benchmark kernel
-unload_modules
-insmod kernel_module/ping_bench.ko
-(cd m4 && m4run ping_zerocopy)
-sleep 1;
-cp /proc/ping_benchmark measurements/kernel
+## Benchmark rpmsg_m4char
+echo "Benchmarking rpmsg_m4char..."
+m4ctl start ./m4/build/debug/ping_m4char
+./bench_m4char "$TOTAL" > measurements/m4char
 
-pings_count=$(cat measurements/kernel | wc -l)
-
-# benchmark imx_rpmsg_tty
-unload_modules
-modprobe imx_rpmsg_tty
-(cd m4 && m4run ping_zerocopy)
-sleep 1 # wait for /dev/ttyRPMSG
-./tty "$pings_count" > measurements/tty
-
-# benchmark rpmsg_char
-unload_modules
-modprobe rpmsg_char
-(cd m4 && m4run ping_zerocopy)
-sleep 1
-./rpmsg_char "$pings_count" > measurements/rpmsg_char
-
-# benchmark mu
-unload_modules
-insmod ./kernel_module/mu_bench.ko
-(cd m4 && m4run mu --no-rpmsg)
-sleep 1
-cp /proc/mu_benchmark measurements/mu
-
-# unload all modules
-unload_modules
+## Benchmark rpmsg_tty
+echo "Benchmarking tty..."
+modprobe imx_rpmsg_tty || true
+m4ctl start ./m4/build/debug/ping_tty
+./bench_tty "$TOTAL" > measurements/tty
 
 # merge to csv
-columns="kernel mu rpmsg_char tty"
+columns="mu m4char tty"
 (cd measurements; echo ${columns// /,}; paste -d, $columns) > measurements/all.csv
 
 echo OK

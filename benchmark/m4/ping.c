@@ -47,35 +47,25 @@
 #include "pin_mux.h"
 #include "clock_config.h"
 #include "fsl_uart.h"
+#include "rsc_table_rpmsg.h"
 
 #define RPMSG_LITE_LINK_ID (RL_PLATFORM_IMX8MQ_M4_USER_LINK_ID)
-#define RPMSG_LITE_SHMEM_BASE 0xB8000000
-#define RPMSG_LITE_NS_ANNOUNCE_STRING "rpmsg-openamp-demo-channel"
 
 #ifndef LOCAL_EPT_ADDR
 #define LOCAL_EPT_ADDR (30)
 #endif
 
-void app_nameservice_isr_cb(unsigned int new_ept, const char *new_ept_name, unsigned long flags, void *user_data) {}
-
 void app_task(void *param) {
-    volatile unsigned long remote_addr;
+    unsigned long remote_addr;
     struct rpmsg_lite_endpoint *volatile my_ept;
-    volatile rpmsg_queue_handle my_queue;
-    struct rpmsg_lite_instance *volatile my_rpmsg;
-    volatile rpmsg_ns_handle ns_handle;
+    rpmsg_queue_handle my_queue;
+    struct rpmsg_lite_instance *my_rpmsg = create_rpmsg_from_resources();
 
     PRINTF("\r\nRPMSG benchmark...\r\n");
 
-    my_rpmsg = rpmsg_lite_remote_init((void *)RPMSG_LITE_SHMEM_BASE, RPMSG_LITE_LINK_ID, RL_NO_FLAGS);
-    // TODO: we are immediatelly ready
-    my_rpmsg->link_state = 1;
-    PRINTF("Link is up!\r\n");
-
     my_queue = rpmsg_queue_create(my_rpmsg);
     my_ept = rpmsg_lite_create_ept(my_rpmsg, LOCAL_EPT_ADDR, rpmsg_queue_rx_cb, my_queue);
-    ns_handle = rpmsg_ns_bind(my_rpmsg, app_nameservice_isr_cb, NULL);
-    rpmsg_ns_announce(my_rpmsg, my_ept, RPMSG_LITE_NS_ANNOUNCE_STRING, RL_NS_CREATE);
+    rpmsg_ns_announce(my_rpmsg, my_ept, RPMSG_CHANNEL, RL_NS_CREATE);
     PRINTF("Nameservice announce sent.\r\n");
 
     uint32_t *rx_buf;
@@ -84,22 +74,22 @@ void app_task(void *param) {
     int len;
     int size;
     for(;;) {
-        result = rpmsg_queue_recv_nocopy(my_rpmsg, my_queue, (unsigned long *) &remote_addr, (uint32_t **) &rx_buf, &len, RL_BLOCK);
-        assert(result == 0);
+	result = rpmsg_queue_recv_nocopy(my_rpmsg, my_queue, (unsigned long *) &remote_addr, (uint32_t **) &rx_buf, &len, RL_BLOCK);
+	assert(result == 0);
 
 	// dont send response to 'hello world' from imx_rpmsg_tty
 	if(len == 4) {
-		tx_buf = rpmsg_lite_alloc_tx_buffer(my_rpmsg, &size, RL_BLOCK);
-		assert(tx_buf);
+	    tx_buf = rpmsg_lite_alloc_tx_buffer(my_rpmsg, &size, RL_BLOCK);
+	    assert(tx_buf);
 
-		// ping ++
-		*tx_buf = *rx_buf + 1;
+	    // ping ++
+	    *tx_buf = *rx_buf + 1;
 
-		// send ping back
-		assert(rpmsg_lite_send_nocopy(my_rpmsg, my_ept, remote_addr, tx_buf, len) == 0);
+	    // send ping back
+	    assert(rpmsg_lite_send_nocopy(my_rpmsg, my_ept, remote_addr, tx_buf, len) == 0);
 	}
-        // return rx_buf
-        assert(rpmsg_queue_nocopy_free(my_rpmsg, rx_buf) == 0);
+	// return rx_buf
+	assert(rpmsg_queue_nocopy_free(my_rpmsg, rx_buf) == 0);
     }
 
     for(;;);
@@ -112,8 +102,8 @@ int main(void) {
     BOARD_InitMemory();
 
     if(xTaskCreate(app_task, "APP_TASK", 256, NULL, tskIDLE_PRIORITY + 1, NULL) != pdPASS) {
-        PRINTF("\r\nFailed to create application task\r\n");
-        for(;;);
+	PRINTF("\r\nFailed to create application task\r\n");
+	for(;;);
     }
 
     vTaskStartScheduler();

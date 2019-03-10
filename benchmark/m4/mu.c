@@ -26,8 +26,7 @@ int main(void) {
     MU_Init(MUB);
     MU_EnableInterrupts(MUB, (1U << 27U));
     NVIC_EnableIRQ(MU_M4_IRQn);
-    MU_SendMsg(MUB, 0, 1);
 
-    PRINTF("ready\r\n");
+    PRINTF("waiting for kernel ping\r\n");
     for(;;);
 }

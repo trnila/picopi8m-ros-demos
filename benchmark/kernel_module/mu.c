@@ -4,27 +4,29 @@
 #include <linux/time.h>
 #include <linux/platform_device.h>
 #include <linux/mx8_mu.h>
+#include <linux/mutex.h>
 #include <linux/proc_fs.h>
+#include <linux/wait.h>
 #include "common.h"
 
-#define DEBUG 1
-#define COUNT 10000
-#define PROCFS_NAME     "mu_benchmark"
-
-static struct timespec start;
-static uint64_t response_time[COUNT];
-static int cur = -1;
+#define DEBUG       1
+#define COUNT       10000
+#define PROCFS_NAME "mu_bench"
 
 struct priv_data {
 	void __iomem *base;
-	int irq;
+	struct mutex mtx;
+	wait_queue_head_t done;
+	struct timespec start;
+	uint64_t response_time[COUNT];
+	atomic_t cur;
 };
 
 static irqreturn_t irq_handler(int irq, void *dev_id) {
 	uint32_t message;
 	struct priv_data *priv = dev_id;
 	static struct timespec end;
-
+	int cur;
 
 	if(!(MU_ReadStatus(priv->base) & (1 << 27))) {
 		printk("invalid irq received!, status = %x\n", MU_ReadStatus(priv->base));
@@ -33,35 +35,48 @@ static irqreturn_t irq_handler(int irq, void *dev_id) {
 
 	MU_ReceiveMsg(priv->base, 0, &message);
 	getnstimeofday(&end);
+
+	cur = atomic_inc_return(&priv->cur);
 	if(cur >= 0 && cur < COUNT) {
-		response_time[cur] = timespec_diff_ns(&start, &end);
+		priv->response_time[cur] = timespec_diff_ns(&priv->start, &end);
 	}
 
-	cur++;
 	if(cur < COUNT) {
-		getnstimeofday(&start);
+		getnstimeofday(&priv->start);
 		MU_SendMessage(priv->base, 0, message + 1);
+	} else if(cur == COUNT) {
+		wake_up_interruptible(&priv->done);
 	}
 
 	return IRQ_HANDLED;
 }
 
-static int show(struct seq_file* seq, void* priv) {
+static int show(struct seq_file* seq, void* m) {
 	int i;
+	struct priv_data *priv = seq->private;
 
-	printk("%d/%d\n", cur, COUNT);
-	if(cur < COUNT) {
-		return -EBUSY;
+	mutex_lock(&priv->mtx);
+	atomic_set(&priv->cur, -2); // skip first measurement
+
+	// kick
+	MU_SendMessage(priv->base, 0, 0);
+
+	// wait until last ping
+	if(wait_event_interruptible(priv->done, atomic_read(&priv->cur) >= COUNT)) {
+		mutex_unlock(&priv->mtx);
+		return -EIO;
 	}
 
 	for(i = 0; i < COUNT; i++) {
-		seq_printf(seq, "%llu\n", response_time[i]);
+		seq_printf(seq, "%llu\n", priv->response_time[i]);
 	}
+
+	mutex_unlock(&priv->mtx);
 	return 0;
 }
 
 static int result_open(struct inode *inode, struct file* file) {
-	return single_open(file, show, NULL);	
+	return single_open(file, show, PDE_DATA(inode));	
 }
 
 static struct file_operations result_file_ops = {
@@ -69,15 +84,16 @@ static struct file_operations result_file_ops = {
 	.open    = result_open,
 	.read    = seq_read,
 	.llseek  = seq_lseek,
-	.release = seq_release
+	.release = single_release
 };
 
 static int mu_bench_probe(struct platform_device *pdev) {
 	struct priv_data *priv;
 	struct resource *res;
 	int ret;
+	int irq;
 
-	priv = devm_kzalloc(&pdev->dev, sizeof(priv), GFP_KERNEL);
+	priv = devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
 	if(!priv) {
 		return -ENOMEM;
 	}
@@ -90,24 +106,28 @@ static int mu_bench_probe(struct platform_device *pdev) {
 		return PTR_ERR(priv->base);
 	}
 
-	priv->irq = platform_get_irq(pdev, 0);
-	if(priv->irq < 0) {
-		return priv->irq;
+	irq = platform_get_irq(pdev, 0);
+	if(irq < 0) {
+		return -ENOENT;
 	}
 
-	ret = devm_request_irq(&pdev->dev, priv->irq, irq_handler, 0, "mu", priv);
+	ret = devm_request_irq(&pdev->dev, irq, irq_handler, 0, "mu", priv);
 	if(ret) {
 		dev_err(&pdev->dev, "failed to request irq\n");
 		return -ENODEV;
 	}
 
-	if(!proc_create(PROCFS_NAME, 0644, NULL, &result_file_ops)) {
+	MU_Init(priv->base);
+	MU_EnableRxFullInt(priv->base, 0);
+	
+	mutex_init(&priv->mtx);
+	init_waitqueue_head(&priv->done);
+
+	if(!proc_create_data(PROCFS_NAME, 0600, NULL, &result_file_ops, priv)) {
 		dev_err(&pdev->dev, "could not register procfs file\n");
 		return -1;
 	}
 
-	MU_EnableRxFullInt(priv->base, 0);
-//	MU_SendMessage(priv->base, 0, 42);
 	dev_info(&pdev->dev, "initialized");
 	return 0;
 }
