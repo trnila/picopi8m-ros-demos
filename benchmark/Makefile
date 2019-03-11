@@ -6,4 +6,5 @@ all: $(TARGETS)
 
 clean:
 	rm -f $(TARGETS)
-	make -C kernel_module clean
+	rm -rf m4/build
+	make -C kernel_module clean || true
