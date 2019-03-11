@@ -40,7 +40,7 @@ distutils.dir_util.copy_tree(src, dest)
 
 # copy generic rosserial files - may fail if already exists
 try:
-    rosserial_client_copy_files(rospack, dest)
+    rosserial_client_copy_files(rospack, dest + "/")
 except OSError as e:
     print(e)
 
