@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include "board.h"
 #include "fsl_debug_console.h"
 #include "fsl_common.h"
@@ -8,7 +7,6 @@
 #include "fsl_gpio.h"
 #include "pin_mux.h"
 #include "clock_config.h"
-#include "benchmark.h"
 
 #define PORT_MOTORA GPIO3
 #define PORT_MOTORB GPIO3
@@ -18,18 +16,18 @@
 #define PWM_SERVOA PWM3
 #define PWM_SERVOB PWM4
 
-uint32_t servo_freq;
-uint32_t motor_ticks;
+static uint32_t servo_freq;
+static uint32_t motor_ticks;
 
 void BOARD_InitPins(void) {
 	// we are routing PWM functionality to both pins
 	// PWM3
-	IOMUXC_SetPinMux(IOMUXC_I2C3_SDA_PWM3_OUT, 0U); // GPIO5_IO19 (147)
-	IOMUXC_SetPinMux(IOMUXC_SPDIF_TX_PWM3_OUT, 0U); // GPIO5_IO3  (131)
+	IOMUXC_SetPinMux(IOMUXC_I2C3_SDA_PWM3_OUT, 0U); // GPIO5_IO19
+	IOMUXC_SetPinMux(IOMUXC_SPDIF_TX_PWM3_OUT, 0U); // GPIO5_IO3
 
 	// PWM4
-	IOMUXC_SetPinMux(IOMUXC_I2C3_SCL_PWM4_OUT, 0U); // GPIO5_IO18 (146)
-	IOMUXC_SetPinMux(IOMUXC_SAI3_MCLK_PWM4_OUT, 0U); // GPIO5_IO2 (130)
+	IOMUXC_SetPinMux(IOMUXC_I2C3_SCL_PWM4_OUT, 0U); // GPIO5_IO18
+	IOMUXC_SetPinMux(IOMUXC_SAI3_MCLK_PWM4_OUT, 0U); // GPIO5_IO2
 
 	IOMUXC_SetPinMux(IOMUXC_NAND_RE_B_GPIO3_IO15, 0U);
 	IOMUXC_SetPinConfig(IOMUXC_NAND_RE_B_GPIO3_IO15, 
@@ -82,8 +80,13 @@ void servoB_set(uint16_t usec) {
 void GPT1_IRQHandler() {
 	if(GPT_GetStatusFlags(GPT1, kGPT_OutputCompare1Flag)) {
 		GPT_ClearStatusFlags(GPT1, kGPT_OutputCompare1Flag);
-		PORT_MOTORA->DR |= 1 << PIN_MOTORA;
-		PORT_MOTORB->DR |= 1 << PIN_MOTORB;
+		// set GPIO pin only if duty cycle > 0
+		if(GPT1->OCR[1] > 0) {
+			PORT_MOTORA->DR |= 1 << PIN_MOTORA;
+		}
+		if(GPT1->OCR[2] > 0) {
+			PORT_MOTORB->DR |= 1 << PIN_MOTORB;
+		}
 	}
 
 	if(GPT_GetStatusFlags(GPT1, kGPT_OutputCompare2Flag)) {
@@ -139,43 +142,3 @@ void motor_start() {
 	GPT_StartTimer(GPT1);
 }
 
-void delay_10ms() {
-	for(int i = 0; i < 1000000 * 2 / 3; i++) asm("nop");
-}
-
-int main(void) {
-	BOARD_RdcInit();
-	BOARD_InitPins();
-	BOARD_BootClockRUN();
-	BOARD_InitDebugConsole();
-	BOARD_InitMemory();
-
-	// uncomment to benchmark before GPT interrupts
-	// benchmark(); for(;;); /* benchmark is infinity loop! */
-
-	servo_start();
-	motor_start();
-
-	servoA_set(500);
-	servoB_set(2500);
-
-	motorA_set(25);
-	motorB_set(75);
-
-	// uncomment to benchmark with GPT interrupts enabled
-	// benchmark(); for(;;); /* benchmark is infinity loop! */
-
-	for(;;) {
-		int Max = 2000;
-		for(int i = 0; i <= Max; i += 10) {
-			servoA_set(500 + i);
-			servoB_set(2500 - i);
-
-			motorA_set(100 * i / Max);
-			motorB_set(100 - 100 * i / Max);
-
-			delay_10ms();
-			delay_10ms();
-		}
-	}
-}
