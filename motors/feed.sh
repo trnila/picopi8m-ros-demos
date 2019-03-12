@@ -9,4 +9,4 @@ motorB: 20
 ---
 EOF
   done
-done | rostopic pub -r 50 /motors motors/CarMotor
+done | rostopic pub -r 50 /motors carmotor_msgs/CarMotor
