@@ -3,9 +3,12 @@ import rospy
 import numpy as np
 from numpy import dot
 from numpy.linalg import inv
-from std_msgs.msg import Float32 
-from demo_fake_m4_sensor.msg import Location 
+from std_msgs.msg import Float32
+from ros_m4_demo.msg import Location
 from filterpy.common import Q_discrete_white_noise
+
+# install libfreetype6-dev and filterpy
+# TODO: remvoe depdendency on filterpy
 
 # based on excelent book "Kalman and Bayesian Filters in Python"
 class KalmanFilter:
@@ -71,7 +74,7 @@ def filter_location(data):
 kalman = KalmanFilter()
 
 rospy.init_node('kalman', anonymous=True)
-pub = rospy.Publisher('/kalman', Location, queue_size=10)
-rospy.Subscriber("/fake_sensor/location", Location, filter_location)
+pub = rospy.Publisher('/ros_m4_demo/filtered_location', Location, queue_size=10)
+rospy.Subscriber("/ros_m4_demo/location", Location, filter_location)
 rospy.spin()
 

@@ -1,0 +1,7 @@
+<launch>
+	<param name="/sigma" value="0.42" />
+
+	<node name="m4_loader" pkg="ros_m4ctl" type="m4ctl" args="start $(find ros_m4_demo)/m4/build/debug/fake_m4_sensor" />
+	<node name="bridge" pkg="ros_m4_demo" type="bridge" />
+	<node name="kalman" pkg="ros_m4_demo" type="kalman_filter.py" />
+</launch>
