@@ -2,21 +2,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include "rpmsg_lite.h"
-#include "rpmsg_queue.h"
-#include "rpmsg_ns.h"
 #include "board.h"
 #include "fsl_iomuxc.h"
 #include "pin_mux.h"
 #include "fsl_debug_console.h"
-#define RPMSG_LITE_LINK_ID RL_PLATFORM_IMX8MQ_M4_USER_LINK_ID
 #include "FreeRTOS.h"
 #include "task.h"
-#include "semphr.h"
 #include "pin_mux.h"
 #include "clock_config.h"
-#include "fsl_uart.h"
-#include "data.h"
 #include "ros.h"
 #include "std_msgs/String.h"
 #include "std_msgs/Float32.h"
