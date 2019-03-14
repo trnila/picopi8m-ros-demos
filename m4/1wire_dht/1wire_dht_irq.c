@@ -106,7 +106,7 @@ int main(void) {
     // 1) pull pin low for at least 1 ms - we choosed 5 ms
     conf.direction = kGPIO_DigitalOutput;
     GPIO_PinInit(GPIO4, PIN, &conf);
-    delay(5000);
+    delay(1000);
 
     // 2) activate pull up and complete receive in interrupts
     state = 0;
