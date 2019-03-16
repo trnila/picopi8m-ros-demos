@@ -28,6 +28,7 @@ int main(int argc, char** argv) {
 
   ros::ServiceClient sigma_svc = n.serviceClient<ros_m4_demo::SetSigma>("/ros_m4_demo/set_sigma"); 
   ros_m4_demo::SetSigma::Request req;
+  req.sigma = 12.345;
   ros_m4_demo::SetSigma::Response resp;
   if(!sigma_svc.call(req, resp)) {
     printf("failed to issue SetSigma call\n");
