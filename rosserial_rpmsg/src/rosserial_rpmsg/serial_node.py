@@ -19,7 +19,11 @@ class M4charStream:
 
         while len(out) < length:
             if self.buffer is None or len(self.buffer) <= 0:
-                self.buffer = os.read(self.fd, 512)
+                try:
+                    self.buffer = os.read(self.fd, 512)
+                except OSError as e:
+                    sleep(0.1)
+                    raise e
 
             out += self.buffer[:length - r]
             self.buffer = self.buffer[length - r:]
@@ -31,6 +35,7 @@ class M4charStream:
         try:
             return os.write(self.fd, data)
         except Exception as e:
+            sleep(0.1)
             raise SerialTimeoutException(e)
 
     def inWaiting(self):

@@ -49,7 +49,9 @@ class RpmsgHardware {
         }
 
         rx = NULL;
-        int result = rpmsg_queue_recv_nocopy(rpmsg, rcv_queue, &remote_addr, &rx, &rx_data_len, RL_DONT_BLOCK);
+        // wait for new buffer for 2000 ms
+        // if no data received, return so that we can send keepalive to Linux side
+        int result = rpmsg_queue_recv_nocopy(rpmsg, rcv_queue, &remote_addr, &rx, &rx_data_len, 2000);
         assert(result == RL_SUCCESS || result == RL_ERR_NO_BUFF);
 
         if(result == RL_SUCCESS) {
