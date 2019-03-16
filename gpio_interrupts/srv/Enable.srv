@@ -1,0 +1,10 @@
+uint8 Disable = 0
+uint8 Enable = 1
+uint8 Rising = 2
+uint8 Falling = 3
+
+uint8 port
+uint8 pin
+uint8 mode
+---
+bool ok
