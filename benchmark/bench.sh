@@ -29,8 +29,17 @@ modprobe imx_rpmsg_tty || true
 m4ctl start ./m4/build/debug/ping_tty
 ./bench_tty "$TOTAL" > measurements/tty
 
+## Benchmark rostopic
+echo "Benchmarking rostopic..."
+rosrun rosserial_rpmsg serial_node.py /dev/m4char &
+NODE_PID=$!
+sleep 6
+m4ctl start ./benchmark_ros_m4/m4/build/debug/bench_rostopic
+./benchmark_ros_m4/build/devel/lib/benchmark_ros_m4/benchmark $TOTAL > measurements/rostopic
+kill $NODE_PID
+
 # merge to csv
-columns="mu m4char tty"
+columns="mu m4char tty rostopic"
 (cd measurements; echo ${columns// /,}; paste -d, $columns) > measurements/all.csv
 
 echo OK
