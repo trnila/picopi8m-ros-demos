@@ -55,7 +55,7 @@ ros::ServiceServer<ros_m4_demo::PauseRequest, ros_m4_demo::PauseResponse> pause_
 // $ rosservice call ros_m4_demo/set_sigma 7.5
 ros::ServiceServer<ros_m4_demo::SetSigmaRequest, ros_m4_demo::SetSigmaResponse> set_sigma_service("/ros_m4_demo/set_sigma", [](const ros_m4_demo::SetSigmaRequest& req, ros_m4_demo::SetSigmaResponse &empty) {
     sigma = req.sigma;
-    nh.loginfo("Set new sigma");
+    nh.loginfo("Set new sigma: %f", sigma);
 });
 
 
