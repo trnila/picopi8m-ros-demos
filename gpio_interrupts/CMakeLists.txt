@@ -20,9 +20,14 @@ catkin_package(CATKIN_DEPENDS
 )
 
 # automatically build m4 application
-#add_custom_target(linecam_m4 ALL m4build WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/m4)
+find_program(M4BUILD m4build)
+IF(M4BUILD)
+  add_custom_target(gpio_interrupts_m4 ALL m4build WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/m4)
+ENDIF()
+
 
 include_directories(${catkin_INCLUDE_DIRS})
 
 add_executable(show src/show.cpp)
 target_link_libraries(show ${catkin_LIBRARIES})
+add_dependencies(show gpio_interrupts_generate_messages_cpp)
