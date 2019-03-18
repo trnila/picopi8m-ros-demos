@@ -25,6 +25,8 @@ ros::NodeHandle nh;
 TaskHandle_t measure_task;
 
 // Topic publisher, sends data TO Linux side
+// $ rostopic echo /ros_m4_demo/location
+// src/subscriber.cpp on Linux side
 ros_m4_demo::Location location;
 ros::Publisher measurements_topic("/ros_m4_demo/location", &location);
 

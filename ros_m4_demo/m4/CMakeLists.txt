@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0.0)
 
-project(fake_m4_sensor)
+project(ros_m4_demo)
 find_package(M4SDK REQUIRED)
 find_package(FreeRTOS REQUIRED)
 find_package(rpmsg REQUIRED)
@@ -8,5 +8,5 @@ find_package(rpmsg REQUIRED)
 include_directories(.)
 include_directories(ros_lib)
 
-add_firmware(fake_m4_sensor main.cpp ros_lib/time.cpp) 
-target_link_libraries(fake_m4_sensor mcuxpressosdk freertos rpmsg_lite)
+add_firmware(ros_m4_demo main.cpp ros_lib/time.cpp) 
+target_link_libraries(ros_m4_demo mcuxpressosdk freertos rpmsg_lite)
