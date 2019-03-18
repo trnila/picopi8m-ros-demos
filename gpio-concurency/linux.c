@@ -40,7 +40,7 @@ int main() {
 			return 1;
 		}
 		if(ioctl(gpio_out.fd, GPIOHANDLE_GET_LINE_VALUES_IOCTL, &get) != 0) {
-			perror("ioctl(set lines)");
+			perror("ioctl(get lines)");
 			return 1;
 		}
 
