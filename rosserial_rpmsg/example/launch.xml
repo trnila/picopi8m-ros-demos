@@ -1,7 +1,0 @@
-<launch>
-	<param name="serial_node/baud" value="115200" />
-	<param name="serial_node/port" value="/dev/m4char" />
-	<param name="fake_sensor/sigma" value="1.0" />
-	<node name="serial_node" pkg="rosserial_rpmsg" type="serial_node.py" />
-	<node name="m4_loader" pkg="ros_m4ctl" type="m4ctl" args="start $(find rosserial_rpmsg)/example/build/debug/fake_sensor_m4char" />
-</launch>

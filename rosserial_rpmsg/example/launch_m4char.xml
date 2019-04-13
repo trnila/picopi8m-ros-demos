@@ -1,0 +1,5 @@
+<launch>
+	<param name="serial_node/port" value="/dev/m4char" />
+	<node name="serial_node" pkg="rosserial_rpmsg" type="serial_node.py" />
+	<node name="m4_loader" pkg="ros_m4ctl" type="m4ctl" args="start $(find rosserial_rpmsg)/example/build/debug/hello_m4char" />
+</launch>
