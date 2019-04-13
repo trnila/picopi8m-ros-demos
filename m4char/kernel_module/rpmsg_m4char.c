@@ -1,17 +1,3 @@
-/*
- * Copyright (C) 2015 Freescale Semiconductor, Inc.
- *
- * derived from the omap-rpmsg and rpmsg_char implementation.
- * Remote processor messaging transport - pingpong driver
- *
- * The code contained herein is licensed under the GNU General Public
- * License. You may obtain a copy of the GNU General Public License
- * Version 2 or later at the following locations:
- *
- * http://www.opensource.org/licenses/gpl-license.html
- * http://www.gnu.org/copyleft/gpl.html
- */
-
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/virtio.h>
@@ -19,6 +5,15 @@
 #include <linux/skbuff.h>
 
 #define DEVICE_NAME "m4char"
+
+/* maximal size of rpmsg buffer */
+#define MAX_SIZE 512
+
+/* 
+ * maximal number of messages waiting for user to read
+ * otherwise we can run out of memory
+ */
+#define MAX_AWAITING_MESSAGES 10000 
 
 static int major;
 static struct class* char_class  = NULL;
@@ -31,14 +26,26 @@ static wait_queue_head_t readq;
 static struct rpmsg_device *rpmsg_device = NULL;
 static struct mutex mtx;
 
-static int rpmsg_pingpong_cb(struct rpmsg_device *rpdev, void *data, int len,
+static char* tx_buffer[MAX_SIZE];
+
+static atomic_t dropped_count;
+
+static int rpmsg_m4char_cb(struct rpmsg_device *rpdev, void *data, int len,
 						void *priv, u32 src)
 {
-	int err;
 	struct sk_buff *skb;
+	uint32_t awaiting_messages;
+	uint32_t dropped;
 
-//	((char*) data)[len] = 0;
-//	printk("ping response: '%s'\n", data);
+	spin_lock(&queue_lock);
+	awaiting_messages = skb_queue_len(&queue);
+	spin_unlock(&queue_lock);
+
+	if(awaiting_messages >= MAX_AWAITING_MESSAGES) {
+		dropped = atomic_inc_return(&dropped_count);
+		printk_ratelimited("no available buffer, dropped rpmsg count %u\n", dropped);
+		return -ENOBUFS;
+	}
 
 	skb = alloc_skb(len, GFP_ATOMIC);
 	if (!skb)
@@ -55,7 +62,7 @@ static int rpmsg_pingpong_cb(struct rpmsg_device *rpdev, void *data, int len,
 	return 0;
 }
 
-static int rpmsg_pingpong_probe(struct rpmsg_device *rpdev)
+static int rpmsg_m4char_probe(struct rpmsg_device *rpdev)
 {
 	dev_info(&rpdev->dev, "new channel: 0x%x -> 0x%x!\n",
 			rpdev->src, rpdev->dst);
@@ -65,23 +72,18 @@ static int rpmsg_pingpong_probe(struct rpmsg_device *rpdev)
 	return 0;
 }
 
-static void rpmsg_pingpong_remove(struct rpmsg_device *rpdev)
+static void rpmsg_m4char_remove(struct rpmsg_device *rpdev)
 {
-	printk("releasing...\n");
 	mutex_lock(&mtx);
 	rpmsg_device = NULL;
 	mutex_unlock(&mtx);
 
 	wake_up_interruptible(&readq);
 
-	dev_info(&rpdev->dev, "rpmsg pingpong driver is removed\n");
+	dev_info(&rpdev->dev, "rpmsg_m4char removed from channel\n");
 }
 
-static int dev_open(struct inode *inodep, struct file *filep) {
-	return 0;
-}
-
-static ssize_t dev_read(struct file *filep, char *buf, size_t len, loff_t *offset){
+static ssize_t rpmsg_m4char_char_read(struct file *filep, char *buf, size_t len, loff_t *offset){
 	unsigned long flags;
 	struct sk_buff *skb;
 	int use;
@@ -117,58 +119,51 @@ static ssize_t dev_read(struct file *filep, char *buf, size_t len, loff_t *offse
 	return use;
 }
 
-static ssize_t dev_write(struct file *filep, const char *buffer, size_t len, loff_t *offset) {
-	void *kbuf;
+static ssize_t rpmsg_m4char_char_write(struct file *filep, const char __user *buffer, size_t len, loff_t *offset) {
+	int err;
+	if(len >= MAX_SIZE) {
+		return -EINVAL;
+	}
 
 	if(mutex_lock_interruptible(&mtx)) {
 		return -ERESTARTSYS;
 	}
 
+	if(copy_from_user(tx_buffer, buffer, len)) {
+		mutex_unlock(&mtx);
+		return -EFAULT;
+	}
+
 	if(!rpmsg_device) {
 		mutex_unlock(&mtx);
-		return -ENODEV;
+		return -EPIPE;
 	}
 
-	kbuf = memdup_user(buffer, len);
-	if (IS_ERR(kbuf)) {
-		mutex_unlock(&mtx);
-		return PTR_ERR(kbuf);
-	}
-	//((char*) kbuf)[len] = 0;
-	//printk("'%s'\n", kbuf);
-
-	rpmsg_send(rpmsg_device->ept, kbuf, len);
-	kfree(kbuf);
+	err = rpmsg_trysend(rpmsg_device->ept, tx_buffer, len);
 	mutex_unlock(&mtx);
-	return len;
-}
-
-static int dev_release(struct inode *inodep, struct file *filep){
-	return 0;
+	return err == 0 ? len : err;
 }
 
 static struct file_operations fops =
 {
-	.open = dev_open,
-	.read = dev_read,
-	.write = dev_write,
-	.release = dev_release,
+	.owner = THIS_MODULE,
+	.read = rpmsg_m4char_char_read,
+	.write = rpmsg_m4char_char_write,
 };
 
-
-static struct rpmsg_device_id rpmsg_driver_pingpong_id_table[] = {
+static struct rpmsg_device_id rpmsg_driver_m4char_id_table[] = {
 	{ .name	= "m4-channel" },
 	{ },
 };
-MODULE_DEVICE_TABLE(rpmsg, rpmsg_driver_pingpong_id_table);
+MODULE_DEVICE_TABLE(rpmsg, rpmsg_driver_m4char_id_table);
 
-static struct rpmsg_driver rpmsg_pingpong_driver = {
+static struct rpmsg_driver rpmsg_m4char_driver = {
 	.drv.name	= KBUILD_MODNAME,
 	.drv.owner	= THIS_MODULE,
-	.id_table	= rpmsg_driver_pingpong_id_table,
-	.probe		= rpmsg_pingpong_probe,
-	.callback	= rpmsg_pingpong_cb,
-	.remove		= rpmsg_pingpong_remove,
+	.id_table	= rpmsg_driver_m4char_id_table,
+	.probe		= rpmsg_m4char_probe,
+	.callback	= rpmsg_m4char_cb,
+	.remove		= rpmsg_m4char_remove,
 };
 
 static int __init init(void)
@@ -198,7 +193,7 @@ static int __init init(void)
 
 	mutex_init(&mtx);
 
-	return register_rpmsg_driver(&rpmsg_pingpong_driver);
+	return register_rpmsg_driver(&rpmsg_m4char_driver);
 }
 
 static void __exit fini(void)
@@ -208,7 +203,7 @@ static void __exit fini(void)
 	class_destroy(char_class);
 	unregister_chrdev(major, DEVICE_NAME);
 
-	unregister_rpmsg_driver(&rpmsg_pingpong_driver);
+	unregister_rpmsg_driver(&rpmsg_m4char_driver);
 }
 module_init(init);
 module_exit(fini);
