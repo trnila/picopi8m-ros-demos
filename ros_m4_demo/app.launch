@@ -1,6 +1,5 @@
 <launch>
-  <node name="rosserial_rpmsg" pkg="rosserial_rpmsg" type="serial_node.py" args="/dev/m4char" />
-  <node name="m4_loader" pkg="ros_m4ctl" type="m4ctl" args="start $(find ros_m4_demo)/m4/build/debug/ros_m4_demo" />
+  <include file="base.launch" />
   <node name="kalman" pkg="ros_m4_demo" type="kalman_filter.py" />
   <node name="publisher" pkg="ros_m4_demo" type="publisher" />
   <node name="addition_server" pkg="ros_m4_demo" type="service_server" />
