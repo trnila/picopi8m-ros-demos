@@ -67,7 +67,6 @@ void publish_task(void *param) {
 }
 
 void ros_task(void *param) {
-    nh.initNode();
     nh.advertiseService(enable_service);
 
     for(;;) {
@@ -82,6 +81,8 @@ int main(void) {
     BOARD_InitMemory();
 
     interrupts_init();
+
+    nh.initNode();
 
     //enable(4, 26, IRQMode::Both);
 
