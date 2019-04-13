@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0.0)
 
-project(gpio_blink)
+project(rpmsg_m4)
 find_package(M4SDK REQUIRED)
 find_package(FreeRTOS REQUIRED)
 find_package(rpmsg REQUIRED)

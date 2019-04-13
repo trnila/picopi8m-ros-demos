@@ -28,7 +28,6 @@ int main() {
     if(r != len) {
       printf("write wrote %d but expected %d\n", r, len);
     }
-    usleep(1* 1000);
     i++;
   }
 

@@ -64,12 +64,16 @@ int main() {
       std::unique_lock<std::mutex> lk(lock);
       cond.wait(lk, [&]{return items.size() < 1000;});
       items.insert(i);
-      printf("not received: %d\n", items.size());
+      printf("waiting to receive: %d items\n", items.size());
     }
 
-    int r = write(fd, buf, len);
-    if(r != len) {
-      printf("write wrote %d but expected %d\n", r, len);
+    while(true) {
+      int r = write(fd, buf, len);
+      if(r == len) {
+        break;
+      }
+
+//      printf("write wrote %d but expected %d\n", r, len);
     }
 
     i++;
