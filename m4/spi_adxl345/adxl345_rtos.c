@@ -60,7 +60,7 @@ void adxl345_set(uint8_t reg, uint8_t val) {
 }
 
 uint8_t adxl345_get(uint8_t reg) {
-  uint32_t tx = ((reg & 0x3F | ADXL345_READ_CMD) << 8);
+  uint32_t tx = (((reg & 0x3F) | ADXL345_READ_CMD) << 8);
   uint32_t rx = -1;
   ecspi_transfer_t masterXfer;
   masterXfer.txData = &tx;
@@ -73,7 +73,7 @@ uint8_t adxl345_get(uint8_t reg) {
   return rx & 0xFF;
 }
 
-void adxl345_get_axis(uint16_t *x, uint16_t *y, uint16_t *z) {
+void adxl345_get_axis(int16_t *x, int16_t *y, int16_t *z) {
   // transmit 8*7 bits
   // first byte - register address
   // remaining dummy bytes for receive DATAX0, DATAX1, ..., DATAZ1
