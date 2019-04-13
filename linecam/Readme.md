@@ -13,6 +13,7 @@ Then you can load firmware, start *rosserial_rpmsg/serial_node.py* and *rosbridg
 $ roslaunch linecam app.launch
 ```
 One of example subscribers is *display* showing measured data in shifting image.
+You can X11 forward window over ssh, if you connect to the picopi with `ssh -X picopi`.
 ```sh
 $ rosrun linecam display
 ```
