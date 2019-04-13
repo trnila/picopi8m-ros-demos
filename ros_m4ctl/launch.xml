@@ -1,0 +1,3 @@
+<launch>
+  <node name="m4_loader" pkg="ros_m4ctl" type="m4ctl" args="start $(find ros_m4ctl)/m4/build/debug/hello" />
+</launch>
