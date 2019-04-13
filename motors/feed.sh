@@ -1,11 +1,11 @@
 #!/bin/bash
 while true; do
-  for i in {500..2500..50}; do
+  for i in {0..100}; do
     cat <<EOF
-servoA: $i
-servoB: 2000
-motorA: 60
-motorB: 20
+servoA: $((500 + 2000 * i/100))
+servoB: $((500 + 2000 * (100-i)/100))
+motorA: $i
+motorB: $((100 - i))
 ---
 EOF
   done
