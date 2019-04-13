@@ -42,10 +42,15 @@ void BOARD_InitPins(void) {
             IOMUXC_SW_PAD_CTL_PAD_SRE(3U));
 }
 
+void rosserial_task(void *param) {
+    for(;;) {
+        nh.spinOnce();
+    }
+}
+
 void ros_task(void *param) {
     struct Bag *bag = (struct Bag*) param;
 
-    nh.initNode();
     nh.advertise(measurements);
 
     container.data = bag->frame;
@@ -55,7 +60,6 @@ void ros_task(void *param) {
         xSemaphoreTake(bag->publish_semaphore, portMAX_DELAY);
         line_print(frame);
         measurements.publish(&container);
-        nh.spinOnce();
         
         xSemaphoreGive(bag->measure_semaphore);
     }
@@ -101,6 +105,14 @@ int main(void) {
 
     bag.frame = frame;
     bag.frame_size = CAMERA_POINTS; 
+
+    // initialize ros node
+    nh.initNode();
+
+    if(xTaskCreate(rosserial_task, "ROSSERIAL_TASK", 256, NULL, tskIDLE_PRIORITY + 1, NULL) != pdPASS) {
+        printf("\r\nFailed to create task\r\n");
+        for(;;);
+    }
 
     if (xTaskCreate(measure_task, "MEASURE_TASK", 512, &bag, tskIDLE_PRIORITY + 1, NULL) != pdPASS) {
         printf("\r\nFailed to create measure task\r\n"); 
