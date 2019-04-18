@@ -6,11 +6,11 @@ pc = 1ffe713a    sp =        0    lr = 1ffe7831
 r0 = 1ffed071    r1 = 20000bc0    r2 = 20000ab4 r3 = 40000000 r12 = 20001c34
 
 $ addr2line -e build/debug/print 1ffe7136
-/root/catkin_ws/src/debugger/print/print.c:28 (discriminator 1)
+/root/catkin_ws/src/debugger/memmanage/print.c:28 (discriminator 1)
 
 $ gdb build/debug/print
 (gdb) list *0x1ffe713a
-0x1ffe713a is in consumer_task (/root/catkin_ws/src/debugger/print/print.c:28).
+0x1ffe713a is in consumer_task (/root/catkin_ws/src/debugger/memmanage/print.c:28).
 23
 24      void consumer_task(void *arg) {
 25          for(;;) {
