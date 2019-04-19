@@ -34,7 +34,7 @@ ros::Publisher measurements_topic("/ros_m4_demo/location", &location);
 // $ rostopic pub /ros_m4_demo/print ros_m4_demo/Print "Hello World" 64
 // src/publisher.cpp on Linux side
 ros::Subscriber<ros_m4_demo::Print> print_sub("/ros_m4_demo/print", [](const ros_m4_demo::Print& msg) {
-  printf("Print: '%s', %d\r\n", msg.text, msg.num); 
+  printf("Print: '%s', %ld\r\n", msg.text, msg.num); 
 });
 
 // Service executed on M4 core
@@ -109,7 +109,7 @@ void location_task(void *param) {
 
     measurements_topic.publish(&location);
 
-    printf("sent %d\r\n", t);
+    printf("sent %ld\r\n", t);
     vTaskDelay(100);
   }
 }
@@ -144,7 +144,7 @@ void calculate_task(void*) {
     req.b += 10;
 
     addition_service_client.call(req, res);
-    printf("Addition(%d, %d) = %d\r\n", req.a, req.b, res.result);
+    printf("Addition(%ld, %ld) = %ld\r\n", req.a, req.b, res.result);
 
     vTaskDelay(1000);
   }
