@@ -10,7 +10,7 @@
 
 int main(int argc, char **argv) {
    if(argc < 3) {
-      fprintf(stderr, "Usage: %s mcast_addr port\n", argv[0]);
+      fprintf(stderr, "Usage: %s mcast_addr port [iface]\n", argv[0]);
       exit(1);
    }
 
@@ -33,7 +33,9 @@ int main(int argc, char **argv) {
 
    struct ipv6_mreq mreq;
    mreq.ipv6mr_interface = 0;
-   // mreq.ipv6mr_interface = if_nametoindex("enp0s25"); // or choose concrete interface
+   if(argc > 3) {
+      mreq.ipv6mr_interface = if_nametoindex(argv[3]); // or choose concrete interface
+   }
    inet_pton(AF_INET6, argv[1], &mreq.ipv6mr_multiaddr);
    if (setsockopt(sock, IPPROTO_IPV6, IPV6_ADD_MEMBERSHIP, &mreq, sizeof(mreq)) < 0) {
       perror("setsockopt mreq");
