@@ -15,5 +15,8 @@ M4 code uses MCUXpresso SDK with [created](https://github.com/trnila/picopi-m4sd
 Build and start M4 application with command `m4run` in source code of that example.
 You can just build code with `m4build` or control core with `m4ctl`.
 
+[![m4run](https://asciinema.org/a/242014.svg)](https://asciinema.org/a/242014)
+[![use of m4char](https://asciinema.org/a/242017.svg)](https://asciinema.org/a/242017)
+
 ## PICO-PI-8M Pinout
 <img src="pinout.svg">

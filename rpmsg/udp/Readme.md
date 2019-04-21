@@ -7,6 +7,8 @@ Its possible to multicast rpmsg messages or just broadcast them if you'r still u
 $ make run
 ```
 
+[![asciicast](https://asciinema.org/a/242020.svg)](https://asciinema.org/a/242020)
+
 ## Load module manually
 ```sh
 $ insmod kernel_module/rpmsg_udp.ko ip=::1 port=4444

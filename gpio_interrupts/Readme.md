@@ -10,6 +10,8 @@ $ (cd m4; m4run)
 $ rosrun gpio_interrupts show
 ```
 
+[![asciicast](https://asciinema.org/a/242015.svg)](https://asciinema.org/a/242015)
+
 ## enable GPIO interrupts via ROS service
 ```sh
 $ rosservice call gpio_interrupts/enable 4 23 1

@@ -23,6 +23,8 @@ $ rosrun linecam display
 Another example may be `rosbridge_websocket`, that can bridge ros functionality with websocket, so it's possible to visualize measured data directly on web page as in *display.html* example.
 Open it in your browser and optionally set some settings via URL fragment - *#server=picopi&zoom=1&topic=/linecam0*.
 
+[![asciicast](https://asciinema.org/a/242016.svg)](https://asciinema.org/a/242016)
+
 # linux /linecam0 publisher
 In *src/linecam_linux.cpp* is userspace variant that is not capable of faster responses.
 It tooks about 200 us between SPI transfers, but M4 is able to respond in 1.2 us.
